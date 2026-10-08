@@ -37,7 +37,17 @@ public class StoreChunks implements ApplicationRunner {
               license = EXCLUDED.license,
               content = EXCLUDED.content,
               embedding = CASE WHEN document_chunks.content = EXCLUDED.content
+                                    AND document_chunks.section = EXCLUDED.section
+                                    AND document_chunks.source_title = EXCLUDED.source_title
                                THEN document_chunks.embedding ELSE NULL END,
+              embedding_model = CASE WHEN document_chunks.content = EXCLUDED.content
+                                          AND document_chunks.section = EXCLUDED.section
+                                          AND document_chunks.source_title = EXCLUDED.source_title
+                                     THEN document_chunks.embedding_model ELSE NULL END,
+              embedded_at = CASE WHEN document_chunks.content = EXCLUDED.content
+                                      AND document_chunks.section = EXCLUDED.section
+                                      AND document_chunks.source_title = EXCLUDED.source_title
+                                 THEN document_chunks.embedded_at ELSE NULL END,
               imported_at = now()
             """;
 

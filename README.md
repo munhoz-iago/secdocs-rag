@@ -4,7 +4,7 @@ Assistente de consulta a documentos públicos da OWASP, desenvolvido em Java. O 
 
 ## Estado atual
 
-**Etapa 3 — armazenamento no PostgreSQL.** A aplicação expõe `GET /api/status`, baixa três Cheat Sheets da OWASP, divide o Markdown por títulos e armazena os trechos no PostgreSQL com seção, URL, revisão e licença. A tabela já tem uma coluna vetorial vazia e um índice de busca textual. Embeddings, busca pela API e respostas ainda serão implementados.
+**Etapa 4 — embeddings locais.** A aplicação expõe `GET /api/status`, baixa três Cheat Sheets da OWASP, divide o Markdown por títulos, armazena os trechos no PostgreSQL e gera vetores com um modelo multilíngue local. Busca pela API e respostas ainda serão implementadas.
 
 ## Requisitos
 
@@ -55,7 +55,35 @@ O [Flyway](https://docs.spring.io/spring-boot/how-to/data-initialization.html) a
 docker compose exec -T db psql -U secdocs -d secdocs -tAc "SELECT count(*) FROM document_chunks;"
 ```
 
-O índice `search_text` usa a configuração inglesa do PostgreSQL porque os textos iniciais estão em inglês. A futura busca vetorial será importante para perguntas em português. A coluna `embedding` permanece vazia até escolhermos um modelo de embeddings e medirmos sua qualidade.
+O índice `search_text` usa a configuração inglesa do PostgreSQL porque os textos iniciais estão em inglês. A busca vetorial será importante para perguntas em português.
+
+## Gerar embeddings locais
+
+O modelo escolhido para o primeiro experimento é [`bge-m3:567m`](https://ollama.com/library/bge-m3). Veja a [decisão técnica](docs/decisions/0001-local-multilingual-embeddings.md). O download do modelo ocupa cerca de 1,2 GB e a primeira geração pode demorar em CPU.
+
+```powershell
+docker compose up -d --wait ollama
+docker compose exec -T ollama ollama pull bge-m3:567m
+
+# Reutilize as variáveis SECDOCS_DB_URL, SECDOCS_DB_USER e SECDOCS_DB_PASSWORD acima.
+java -jar target\secdocs-rag-0.0.1-SNAPSHOT.jar --secdocs.embed=true --spring.main.web-application-type=none
+```
+
+O comando salva lotes de oito vetores e pode ser repetido após uma interrupção: ele processa somente trechos sem vetor ou com digest de modelo diferente. A migração `V2__add_embedding_index.sql` fixa a dimensão em 1.024 e cria o índice HNSW. Para conferir:
+
+```powershell
+docker compose exec -T db psql -U secdocs -d secdocs -tAc "SELECT count(*) FILTER (WHERE embedding IS NOT NULL), count(*) FROM document_chunks;"
+```
+
+O modelo local produz vetores, mas **a qualidade da recuperação ainda não foi avaliada**. Números de recall só serão publicados depois de criar perguntas de referência e medir o resultado.
+
+Para visualizar os cinco trechos mais próximos de uma pergunta em português:
+
+```powershell
+java -jar target\secdocs-rag-0.0.1-SNAPSHOT.jar --secdocs.search-preview=true --spring.main.web-application-type=none '--secdocs.question=Como evitar injeção de SQL em consultas ao banco?'
+```
+
+Na primeira verificação local, os cinco resultados vieram do documento certo sobre SQL injection, mas uma seção que desaconselha uma defesa apareceu em segundo lugar. Esse exemplo **não é uma métrica de qualidade**. O próximo passo é criar perguntas de referência e comparar a busca vetorial com a busca híbrida.
 
 As fontes escolhidas estão em `src/main/resources/owasp-sources.properties`. O arquivo fixa a revisão `29994dd8a2e6f50fa3d5607b046b54d7c6945afd` do [repositório OWASP Cheat Sheet Series](https://github.com/OWASP/CheatSheetSeries). Os três textos iniciais são [SQL Injection Prevention](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html), [Cross Site Scripting Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html) e [Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html). O conteúdo está sob [CC BY-SA 4.0](https://github.com/OWASP/CheatSheetSeries/blob/master/LICENSE.md); atribuição e licença acompanham cada trecho.
 
@@ -63,11 +91,10 @@ O limite atual é de 3.500 caracteres por trecho, não uma contagem exata de tok
 
 ## Por que esta primeira etapa existe
 
-`SecdocsRagApplication` inicia o servidor. `StatusController` define uma rota HTTP simples. `OwaspIngestion` baixa as fontes, `MarkdownChunker` divide o texto em trechos e `StoreChunks` grava no PostgreSQL. O `pom.xml` registra a versão de Java e as bibliotecas.
+`SecdocsRagApplication` inicia o servidor. `StatusController` define uma rota HTTP simples. `OwaspIngestion` baixa as fontes, `MarkdownChunker` divide o texto em trechos, `StoreChunks` grava no PostgreSQL, `EmbedChunks` gera os vetores e `SearchPreview` mostra uma busca manual. O `pom.xml` registra a versão de Java e as bibliotecas.
 
 ## Próximas etapas
 
-1. Escolher um modelo de embeddings, gerar os vetores e criar o índice vetorial.
-2. Implementar busca vetorial e textual, com comparação medida no conjunto de avaliação.
-3. Gerar respostas com citações e recusa quando a evidência for insuficiente.
-4. Adicionar testes de segurança, documentação e demonstração.
+1. Implementar busca vetorial e textual, com comparação medida no conjunto de avaliação.
+2. Gerar respostas com citações e recusa quando a evidência for insuficiente.
+3. Adicionar testes de segurança, documentação e demonstração.
