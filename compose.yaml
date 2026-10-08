@@ -1,0 +1,19 @@
+services:
+  db:
+    image: pgvector/pgvector:0.8.7-pg18
+    environment:
+      POSTGRES_DB: secdocs
+      POSTGRES_USER: secdocs
+      POSTGRES_PASSWORD: ${SECDOCS_DB_PASSWORD:?Set SECDOCS_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - secdocs_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U secdocs -d secdocs"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  secdocs_pgdata:
