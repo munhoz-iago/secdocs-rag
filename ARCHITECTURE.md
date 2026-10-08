@@ -13,7 +13,7 @@
 
 | Camada | Arquivos principais | Responsabilidade |
 |---|---|---|
-| Entrada | `AnswerController`, `SearchController` | Validar JSON e limites de entrada |
+| Entrada | `AnswerController`, `SearchController`, `WebPageController` | Validar JSON e renderizar o formulário HTML |
 | Ingestão | `OwaspIngestion`, `MarkdownChunker`, `StoreChunks` | Criar e persistir trechos reproduzíveis |
 | Vetores | `OllamaEmbeddingClient`, `EmbedChunks` | Gerar vetores e guardar digest do modelo |
 | Recuperação | `SearchEngine`, `SearchHit` | Buscar, ordenar e fundir resultados |
@@ -31,4 +31,4 @@
 
 ## Fronteiras de confiança
 
-Pergunta e documentos são dados externos. Consultas SQL usam parâmetros. O conteúdo recuperado é marcado como evidência, não como instrução ao modelo. O modelo ainda pode interpretar mal esses dados; a validação de citações só comprova que a frase citada existe no trecho, não que todas as frases da resposta sejam verdadeiras. A interface usa `textContent` para mostrar resposta e trechos, evitando executar HTML vindo do modelo.
+Pergunta e documentos são dados externos. Consultas SQL usam parâmetros. O conteúdo recuperado é marcado como evidência, não como instrução ao modelo. O modelo ainda pode interpretar mal esses dados; a validação de citações só comprova que a frase citada existe no trecho, não que todas as frases da resposta sejam verdadeiras. O Thymeleaf escapa resposta e trechos na página, e o controlador só transforma URLs OWASP permitidas em links.

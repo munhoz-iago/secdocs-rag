@@ -1,6 +1,6 @@
 # SecDocs RAG
 
-Assistente local em **Java 21** para consultar três documentos públicos da OWASP com citações. Ele ingere Markdown, divide por seção, armazena vetores no PostgreSQL com pgvector, compara busca vetorial, textual e híbrida, e gera respostas com o Ollama. Uma pergunta sem evidência suficiente recebe uma recusa.
+Assistente local em **Java 21** para consultar três documentos públicos da OWASP com citações. Ele ingere Markdown, divide por seção, armazena vetores no PostgreSQL com pgvector, compara busca vetorial, textual e híbrida, e gera respostas com o Ollama. Uma pergunta sem evidência suficiente recebe uma recusa. A página é renderizada pelo Spring com Thymeleaf, sem JavaScript.
 
 ## Demonstração local
 

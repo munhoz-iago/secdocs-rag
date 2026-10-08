@@ -33,7 +33,8 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String path = request.getRequestURI();
-        if (!"POST".equals(request.getMethod()) || !("/api/ask".equals(path) || "/api/search".equals(path))) {
+        if (!"POST".equals(request.getMethod()) || !("/api/ask".equals(path)
+                || "/api/search".equals(path) || "/consultar".equals(path))) {
             chain.doFilter(request, response);
             return;
         }

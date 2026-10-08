@@ -27,7 +27,7 @@ flowchart LR
   M --> N[Resposta ou recusa]
 ```
 
-O projeto usa **Java no backend**. A tela de demonstração é HTML, CSS e um pequeno script de navegador; ela apenas chama a API Java e mostra o resultado. PostgreSQL e Ollama rodam localmente em Docker.
+O projeto usa **Java para toda a lógica**. A tela de demonstração é um formulário HTML/CSS renderizado no servidor pelo Spring com Thymeleaf, sem JavaScript. PostgreSQL e Ollama rodam localmente em Docker.
 
 ## 3. Etapas, com as classes para ler
 
