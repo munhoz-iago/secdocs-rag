@@ -1,0 +1,267 @@
+[
+  {
+    "id": "sql-01",
+    "question": "Como consultas parametrizadas ajudam a prevenir SQL injection?",
+    "expectedChunkIds": [
+      "sql-injection-5",
+      "sql-injection-6"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Consultas parametrizadas separam o código SQL dos valores do usuário, impedindo que a entrada altere a intenção da consulta."
+  },
+  {
+    "id": "sql-02",
+    "question": "Mostre o princípio de um PreparedStatement seguro em Java.",
+    "expectedChunkIds": [
+      "sql-injection-6"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Em Java, prepare a consulta com ? e passe o valor com um setter de PreparedStatement, sem concatená-lo ao SQL."
+  },
+  {
+    "id": "sql-03",
+    "question": "When can stored procedures increase SQL injection risk?",
+    "expectedChunkIds": [
+      "sql-injection-12"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Procedimentos armazenados podem aumentar o risco quando exigem privilégios excessivos, como db_owner, para a conta da aplicação."
+  },
+  {
+    "id": "sql-04",
+    "question": "Como validar nomes de tabelas que não aceitam bind variables?",
+    "expectedChunkIds": [
+      "sql-injection-15",
+      "sql-injection-16"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Para nomes de tabelas, colunas ou ordem que não aceitam bind variables, valide contra uma lista permitida ou redesenhe a consulta."
+  },
+  {
+    "id": "sql-05",
+    "question": "Escapar toda a entrada do usuário é uma defesa recomendada contra SQL injection?",
+    "expectedChunkIds": [
+      "sql-injection-19"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Não. Escapar toda a entrada é frágil e específico do banco; consultas parametrizadas são a defesa preferida."
+  },
+  {
+    "id": "sql-06",
+    "question": "Why should database accounts have least privilege?",
+    "expectedChunkIds": [
+      "sql-injection-21",
+      "sql-injection-22"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Privilégios mínimos reduzem os dados e operações acessíveis caso uma injeção SQL seja bem-sucedida."
+  },
+  {
+    "id": "sql-07",
+    "question": "Como views SQL podem limitar o acesso a dados?",
+    "expectedChunkIds": [
+      "sql-injection-25"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Views podem restringir a leitura a campos ou junções específicos sem conceder acesso amplo às tabelas."
+  },
+  {
+    "id": "sql-08",
+    "question": "How can named parameters make HQL queries safer?",
+    "expectedChunkIds": [
+      "sql-injection-8"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Parâmetros nomeados em HQL passam valores separadamente da expressão, evitando concatenação de entrada na consulta."
+  },
+  {
+    "id": "xss-01",
+    "question": "Qual codificação usar ao inserir texto não confiável entre tags HTML?",
+    "expectedChunkIds": [
+      "xss-5"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Codifique a saída para contexto HTML quando texto não confiável for inserido entre tags."
+  },
+  {
+    "id": "xss-02",
+    "question": "How should untrusted values in HTML attributes be encoded?",
+    "expectedChunkIds": [
+      "xss-6"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Use codificação de atributo HTML para atributos textuais comuns e mantenha nomes de elementos e atributos fixos."
+  },
+  {
+    "id": "xss-03",
+    "question": "Como tratar dados inseridos em um script JavaScript inline?",
+    "expectedChunkIds": [
+      "xss-7"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Use um codificador adequado à string JavaScript e ao script HTML que a contém; evite interpolação crua."
+  },
+  {
+    "id": "xss-04",
+    "question": "What encoding applies to CSS contexts?",
+    "expectedChunkIds": [
+      "xss-8"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Aplique controles específicos do contexto CSS para valores não confiáveis em CSS inline."
+  },
+  {
+    "id": "xss-05",
+    "question": "Como proteger um valor não confiável usado em uma URL?",
+    "expectedChunkIds": [
+      "xss-9",
+      "xss-10"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Codifique o componente de URL e, quando estiver em atributo HTML como href, aplique também a codificação do atributo."
+  },
+  {
+    "id": "xss-06",
+    "question": "Quando é necessário sanitizar HTML enviado por usuários?",
+    "expectedChunkIds": [
+      "xss-12"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Quando usuários precisam criar HTML, sanitize o HTML permitido, pois codificar toda a marcação impediria a função pretendida."
+  },
+  {
+    "id": "xss-07",
+    "question": "What are safe sinks when handling untrusted DOM data?",
+    "expectedChunkIds": [
+      "xss-13"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Use destinos DOM que tratem entrada como texto, como textContent, em vez de interpretá-la como HTML."
+  },
+  {
+    "id": "xss-08",
+    "question": "Por que confiar apenas em CSP é insuficiente para prevenir XSS?",
+    "expectedChunkIds": [
+      "xss-18",
+      "xss-19",
+      "xss-20"
+    ],
+    "answerable": true,
+    "referenceAnswer": "CSP funciona como defesa em profundidade; suporte desigual de navegadores e políticas genéricas impedem depender apenas dela."
+  },
+  {
+    "id": "auth-01",
+    "question": "Quais controles de força de senha a OWASP recomenda?",
+    "expectedChunkIds": [
+      "authentication-5",
+      "authentication-6"
+    ],
+    "answerable": true,
+    "referenceAnswer": "A política de senha deve dificultar adivinhação e bloquear senhas comuns ou previamente comprometidas."
+  },
+  {
+    "id": "auth-02",
+    "question": "Should applications block commonly breached passwords?",
+    "expectedChunkIds": [
+      "authentication-6"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Sim. Bloqueie senhas comuns e previamente vazadas."
+  },
+  {
+    "id": "auth-03",
+    "question": "Como armazenar senhas de forma segura?",
+    "expectedChunkIds": [
+      "authentication-9"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Armazene senhas com técnica criptográfica apropriada; o documento remete ao Password Storage Cheat Sheet para os detalhes."
+  },
+  {
+    "id": "auth-04",
+    "question": "When should a user re-authenticate for a sensitive feature?",
+    "expectedChunkIds": [
+      "authentication-13"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Exija as credenciais atuais antes de alterar dados sensíveis da conta ou executar transações sensíveis."
+  },
+  {
+    "id": "auth-05",
+    "question": "Como mensagens de erro de login podem permitir enumeração de usuários?",
+    "expectedChunkIds": [
+      "authentication-20",
+      "authentication-21",
+      "authentication-22"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Mensagens diferentes para usuário inexistente, senha errada ou conta desativada permitem enumeração; use resposta genérica."
+  },
+  {
+    "id": "auth-06",
+    "question": "Why is MFA useful against automated password attacks?",
+    "expectedChunkIds": [
+      "authentication-27"
+    ],
+    "answerable": true,
+    "referenceAnswer": "MFA adiciona outro fator e reduz a eficácia de ataques baseados em senha, incluindo força bruta."
+  },
+  {
+    "id": "auth-07",
+    "question": "O que é login throttling?",
+    "expectedChunkIds": [
+      "authentication-28"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Login throttling limita tentativas de adivinhar senha por meio do login interativo."
+  },
+  {
+    "id": "auth-08",
+    "question": "Are security questions recommended for authentication or recovery?",
+    "expectedChunkIds": [
+      "authentication-31"
+    ],
+    "answerable": true,
+    "referenceAnswer": "Não use perguntas de segurança para autenticação ou reautenticação."
+  },
+  {
+    "id": "auth-09",
+    "question": "Qual é a diferença entre OAuth e OpenID Connect?",
+    "expectedChunkIds": [
+      "authentication-34",
+      "authentication-35"
+    ],
+    "answerable": true,
+    "referenceAnswer": "OAuth é um framework de autorização para acesso delegado; OpenID Connect acrescenta uma camada de identidade sobre OAuth."
+  },
+  {
+    "id": "none-01",
+    "question": "Qual é o preço atual de uma instância AWS EC2 t3.micro em São Paulo?",
+    "expectedChunkIds": [],
+    "answerable": false
+  },
+  {
+    "id": "none-02",
+    "question": "Quem ganhou a Copa do Mundo FIFA de 2026?",
+    "expectedChunkIds": [],
+    "answerable": false
+  },
+  {
+    "id": "none-03",
+    "question": "Qual é a previsão do tempo amanhã em Campinas?",
+    "expectedChunkIds": [],
+    "answerable": false
+  },
+  {
+    "id": "none-04",
+    "question": "Quanto custa uma licença do Microsoft 365 Business hoje?",
+    "expectedChunkIds": [],
+    "answerable": false
+  },
+  {
+    "id": "none-05",
+    "question": "Qual é o telefone pessoal do presidente da OWASP?",
+    "expectedChunkIds": [],
+    "answerable": false
+  }
+]

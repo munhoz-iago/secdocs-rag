@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SecDocs RAG · OWASP em contexto</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #0b1220; color: #e8f1fb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 10% 0%, #193b48 0, transparent 35%), #0b1220; }
+    main { max-width: 900px; margin: auto; padding: 48px 24px 80px; }
+    header { margin-bottom: 44px; }
+    .eyebrow { color: #6de0ca; letter-spacing: .13em; text-transform: uppercase; font-size: 12px; font-weight: 800; }
+    h1 { font-size: clamp(36px, 6vw, 64px); line-height: 1.03; letter-spacing: -.05em; margin: 12px 0 18px; }
+    .lead { max-width: 630px; color: #b5c8d8; line-height: 1.6; font-size: 18px; }
+    .panel { background: #132235; border: 1px solid #365165; border-radius: 18px; padding: 24px; box-shadow: 0 20px 50px #0004; }
+    label { display: block; font-weight: 700; margin-bottom: 10px; }
+    textarea { width: 100%; resize: vertical; min-height: 100px; border-radius: 10px; border: 1px solid #68849a; background: #091625; color: #f2fbff; font: inherit; padding: 14px; }
+    textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #6de0ca; outline-offset: 3px; }
+    .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+    button { background: #6de0ca; color: #072024; border: 0; border-radius: 9px; padding: 12px 18px; font: inherit; font-weight: 800; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .hint, .meta { color: #a7bbcd; font-size: 14px; }
+    .examples { margin: 28px 0; }
+    .examples button { background: transparent; color: #d9eef6; border: 1px solid #547387; font-weight: 500; margin: 0 8px 8px 0; }
+    #result { margin-top: 28px; }
+    #result[hidden] { display: none; }
+    #answer { font-size: 20px; line-height: 1.55; white-space: pre-wrap; }
+    .citation { border-top: 1px solid #365165; padding-top: 16px; margin-top: 16px; }
+    .citation a { color: #6de0ca; font-weight: 700; }
+    blockquote { margin: 8px 0 0; border-left: 3px solid #6de0ca; padding-left: 14px; color: #c3d4df; line-height: 1.5; }
+    footer { margin-top: 36px; color: #9eb3c5; font-size: 14px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Java · PostgreSQL + pgvector · Ollama local</div>
+      <h1>SecDocs RAG</h1>
+      <p class="lead">Pergunte sobre SQL injection, XSS ou autenticação. Cada resposta traz trechos verificáveis dos Cheat Sheets da OWASP. Quando a evidência é insuficiente, o assistente se abstém.</p>
+    </header>
+    <form id="ask-form" class="panel">
+      <label for="question">Sua pergunta</label>
+      <textarea id="question" maxlength="500" required placeholder="Como consultas parametrizadas previnem SQL injection?"></textarea>
+      <div class="actions"><button id="submit" type="submit">Consultar documentos</button><span id="status" class="hint" role="status" aria-live="polite">A geração local pode levar cerca de um minuto em CPU.</span></div>
+    </form>
+    <div class="examples" aria-label="Exemplos de perguntas">
+      <span class="meta">Experimente:</span><br>
+      <button type="button" data-question="Como consultas parametrizadas ajudam a prevenir SQL injection?">Consultas parametrizadas</button>
+      <button type="button" data-question="Quando devo sanitizar HTML de usuários para evitar XSS?">Sanitização de HTML</button>
+      <button type="button" data-question="Qual é a previsão do tempo amanhã?">Pergunta fora do acervo</button>
+    </div>
+    <section id="result" class="panel" aria-live="polite" hidden>
+      <div class="eyebrow">Resposta</div>
+      <p id="answer"></p>
+      <div id="citations"></div>
+    </section>
+    <footer>Fontes: OWASP Cheat Sheet Series. Projeto educacional; confira sempre o documento original antes de aplicar uma recomendação de segurança.</footer>
+  </main>
+  <script>
+    const form = document.getElementById('ask-form');
+    const question = document.getElementById('question');
+    const submit = document.getElementById('submit');
+    const status = document.getElementById('status');
+    const result = document.getElementById('result');
+    const answer = document.getElementById('answer');
+    const citations = document.getElementById('citations');
+    document.querySelectorAll('[data-question]').forEach(button => button.addEventListener('click', () => {
+      question.value = button.dataset.question;
+      question.focus();
+    }));
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      submit.disabled = true;
+      status.textContent = 'Consultando os documentos e gerando a resposta localmente…';
+      result.hidden = true;
+      citations.replaceChildren();
+      try {
+        const response = await fetch('/api/ask', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({question: question.value.trim()})
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || `Erro HTTP ${response.status}`);
+        answer.textContent = data.answer;
+        for (const citation of data.citations) {
+          const item = document.createElement('div');
+          item.className = 'citation';
+          const link = document.createElement('a');
+          const url = new URL(citation.sourceUrl);
+          const isOwaspPage = url.hostname === 'cheatsheetseries.owasp.org';
+          const isPinnedOwaspSource = url.hostname === 'github.com' &&
+            url.pathname.startsWith('/OWASP/CheatSheetSeries/blob/');
+          if (url.protocol === 'https:' && (isOwaspPage || isPinnedOwaspSource)) {
+            link.href = url.href;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = `${citation.sourceTitle} · ${citation.section}`;
+            item.append(link);
+          }
+          const quote = document.createElement('blockquote');
+          quote.textContent = citation.excerpt;
+          item.append(quote);
+          citations.append(item);
+        }
+        result.hidden = false;
+        status.textContent = data.abstained ? 'Evidência insuficiente no acervo atual.' : `${data.citations.length} trecho(s) verificado(s).`;
+      } catch (error) {
+        status.textContent = `Não foi possível consultar: ${error.message}`;
+      } finally {
+        submit.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
