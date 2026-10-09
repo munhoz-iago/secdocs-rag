@@ -36,7 +36,7 @@ Abra [http://localhost:8080](http://localhost:8080). Os comandos de preparo pode
 
 ## API
 
-`POST /api/ask` recebe `{"question":"Como consultas parametrizadas previnem SQL injection?"}` e devolve `answer`, `abstained` e citações com trecho literal, seção e URL. `POST /api/search` recebe `question`, `mode` (`VECTOR`, `KEYWORD` ou `HYBRID`) e `limit` (1–10). `GET /api/status` verifica a aplicação. Os dois endpoints POST aceitam perguntas de até 500 caracteres e têm limite local de 20 pedidos por minuto por endereço IP.
+`POST /api/ask` recebe `{"question":"Como consultas parametrizadas previnem SQL injection?"}` e devolve `answer`, `abstained` e citações com trecho literal, seção e URL. `POST /api/search` recebe `question`, `mode` (`VECTOR`, `KEYWORD` ou `HYBRID`) e `limit` (1–10). `GET /api/status` verifica a aplicação. As perguntas têm até 500 caracteres; as rotas POST da API e do formulário têm limite local de 20 pedidos por minuto por endereço IP.
 
 ```powershell
 $body = @{question='Como consultas parametrizadas previnem SQL injection?'} | ConvertTo-Json
