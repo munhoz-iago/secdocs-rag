@@ -76,7 +76,7 @@ O limiar de similaridade `0,55` foi escolhido observando este conjunto pequeno d
 - [`ProbePromptInjection`](src/main/java/dev/secdocs/eval/ProbePromptInjection.java) testa uma instrução maliciosa em evidência sintética.
 - [`ApiRateLimitFilter`](src/main/java/dev/secdocs/ApiRateLimitFilter.java) limita chamadas locais por IP.
 
-O CI contém testes Java e um job que recria banco, corpus, embeddings e a avaliação. Esse job ainda precisa ser observado no GitHub; execução local não equivale a CI verde.
+O CI contém testes Java e um job que recria banco, corpus, embeddings e a avaliação. A primeira execução no GitHub passou nos dois jobs; veja o [registro da execução](https://github.com/munhoz-iago/secdocs-rag/actions/runs/37870314187).
 
 ## 4. O que os números mostram
 
@@ -116,9 +116,9 @@ Para estudar o código em ordem: comece por `DocumentChunk`, `MarkdownChunker`, 
 
 > “Construí em Java um RAG local sobre três Cheat Sheets da OWASP. Uso PostgreSQL com pgvector para busca vetorial, comparo com busca textual e RRF, e avalio recuperação com 30 perguntas. No conjunto inicial, a busca vetorial encontrou 25/25 fontes esperadas no top 5; a híbrida encontrou 24/25. Por isso, mantive as duas para comparação e usei a vetorial na geração. O modelo local responde com citações que o servidor valida literalmente. Sei que o conjunto é pequeno e que citação literal não prova cada afirmação, então documentei esses limites e o próximo experimento.”
 
-Mostre o código e o [resultado por pergunta](evals/results.json). Diga com clareza que GitHub Actions ainda não foi observado em execução e que uma demo local não é um serviço pronto para produção. Essa honestidade facilita uma conversa técnica real.
+Mostre o código, o [resultado por pergunta](evals/results.json) e a [execução do CI](https://github.com/munhoz-iago/secdocs-rag/actions/runs/37870314187). Diga com clareza que uma demo local e um CI verde não tornam a API pronta para produção. Essa honestidade facilita uma conversa técnica real.
 
 ## 8. Próximos passos úteis
 
-Construir um conjunto independente com perguntas reais de outras pessoas; medir recusa em temas próximos; avaliar respostas com revisão humana; experimentar índice textual multilíngue e tamanhos de trecho; adicionar Top 10 e ASVS com licenças verificadas; medir tempo e custo de CPU; publicar o repositório após revisar o histórico e executar o CI.
+Construir um conjunto independente com perguntas reais de outras pessoas; medir recusa em temas próximos; avaliar respostas com revisão humana; experimentar índice textual multilíngue e tamanhos de trecho; adicionar Top 10 e ASVS com licenças verificadas; medir tempo e custo de CPU.
 

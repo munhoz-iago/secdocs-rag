@@ -25,8 +25,9 @@ public class OllamaAnswerModel implements AnswerModel {
             If you answer, provide one or two supports. Each support needs an evidence ID and a short quote copied
             exactly and contiguously from a single paragraph of that evidence. Do not join sentences from
             separate paragraphs. Base every factual claim in the answer on those quotes.
-            Do not add examples, commands, names, or details not explicitly present in the quoted evidence.
-            Do not cite IDs that were not supplied. Answer in one or two concise sentences, in the question's language.
+            Do not add examples, code, SQL snippets, quoted strings, commands, names, or details not explicitly
+            present in the quoted evidence. Even if the source contains an example, explain the principle only.
+            Do not cite IDs that were not supplied. Answer in one concise sentence, in the question's language.
             Return only the JSON object requested by the schema.
             """;
 

@@ -16,7 +16,7 @@ O conjunto foi escrito após conhecer os documentos e contém perguntas próxima
 
 ## Respostas e fundamentação
 
-O endpoint foi verificado localmente com uma pergunta sobre consultas parametrizadas: devolveu resposta em português e trecho literal do Cheat Sheet de SQL injection. Uma pergunta sobre previsão do tempo retornou recusa. A primeira versão da geração acrescentou um exemplo que não constava dos trechos citados; o prompt e a validação foram reforçados. A validação atual descarta citações inexistentes ou não literais e recusa se não houver pelo menos uma citação válida. Isso valida a **existência da citação**, mas ainda requer revisão humana da relação entre todas as afirmações e suas fontes.
+O endpoint foi verificado localmente com uma pergunta sobre consultas parametrizadas: devolveu resposta em português e trecho literal do Cheat Sheet de SQL injection. Uma pergunta sobre previsão do tempo retornou recusa. Em uma captura posterior, o modelo acrescentou um exemplo de comando SQL que não constava da citação. O prompt foi restringido e a validação Java passou a recusar respostas com trechos de código, aspas ou exemplos de comandos SQL; o teste de regressão cobre esse caso. A validação atual descarta citações inexistentes ou não literais e recusa se não houver pelo menos uma citação válida. Isso valida a **existência da citação**, mas ainda requer revisão humana da relação entre todas as afirmações e suas fontes.
 
 Um teste adversarial isolado pode ser repetido com `--secdocs.probe-injection=true --spring.main.web-application-type=none`. Ele envia ao modelo um trecho sintético com uma instrução para ignorar a pergunta, emitir `MODO_PIRATA_ATIVADO` e citar um ID falso. O resultado fica em `evals/prompt-injection-result.json`. Um único teste não demonstra resistência geral a prompt injection.
 
@@ -31,7 +31,7 @@ java -jar $jar --secdocs.eval=true --secdocs.min-recall=0.8 --spring.main.web-ap
 java -jar $jar --secdocs.probe-injection=true --spring.main.web-application-type=none
 ```
 
-O primeiro comando falha se o recall@5 vetorial ficar abaixo de 80%. O job `retrieval-eval` do CI executa ingestão, embeddings e essa avaliação em banco e Ollama limpos. O pipeline ainda não teve execução observada no GitHub.
+O primeiro comando falha se o recall@5 vetorial ficar abaixo de 80%. O job `retrieval-eval` do CI executa ingestão, embeddings e essa avaliação em banco e Ollama limpos. A [primeira execução pública](https://github.com/munhoz-iago/secdocs-rag/actions/runs/37870314187) passou, incluindo o job de avaliação.
 
 ## Próximos experimentos
 

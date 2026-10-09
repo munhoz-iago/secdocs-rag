@@ -7,7 +7,7 @@
 3. `EmbedChunks` pede vetores de 1.024 dimensões ao `bge-m3:567m` no Ollama. O digest do modelo é salvo junto do vetor para impedir mistura acidental de versões.
 4. `SearchEngine` executa busca vetorial por cosseno com índice HNSW e busca textual com `tsvector` em inglês. A busca híbrida soma `1 / (60 + posição)` para até 20 candidatos de cada modalidade.
 5. `AnswerService` recupera os cinco melhores trechos vetoriais, recusa se a maior similaridade for menor que `0,55` e envia a pergunta e os trechos ao `qwen3:1.7b` local.
-6. O modelo devolve JSON com resposta, indicador de recusa e até três pares de ID/trecho. O servidor descarta citações com ID desconhecido ou texto não contíguo no trecho original. Se nenhuma citação válida restar, devolve recusa.
+6. O modelo devolve JSON com resposta, indicador de recusa e até três pares de ID/trecho. O servidor descarta citações com ID desconhecido ou texto não contíguo no trecho original. Também recusa respostas com exemplos de código ou comandos SQL, pois um teste local revelou um exemplo não sustentado pela citação. Se nenhuma citação válida restar, devolve recusa.
 
 ## Componentes e contratos
 

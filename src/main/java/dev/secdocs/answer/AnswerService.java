@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,8 @@ import dev.secdocs.search.SearchMode;
 public class AnswerService {
 
     private static final double MIN_VECTOR_SIMILARITY = 0.55;
+    private static final Pattern CODE_LIKE_ANSWER = Pattern.compile(
+            "(?i)[`;'\"]|\\b(?:drop\\s+table|truncate\\s+table|union\\s+select|select\\s+\\*|delete\\s+from|insert\\s+into)\\b");
     private static final String NO_ANSWER = "Não encontrei informação suficiente nos documentos consultados para responder com segurança.";
 
     private final SearchEngine searchEngine;
@@ -41,6 +44,7 @@ public class AnswerService {
     public static AnswerResponse validate(AnswerModel.ModelAnswer draft, List<SearchHit> evidence) {
         if (draft == null || draft.abstained() || draft.answer() == null
                 || draft.answer().isBlank() || draft.answer().length() > 4000
+                || CODE_LIKE_ANSWER.matcher(draft.answer()).find()
                 || draft.supports() == null || draft.supports().isEmpty()
                 || draft.supports().size() > 3) {
             return abstain();

@@ -1,6 +1,10 @@
 # SecDocs RAG
 
+[![Java and retrieval evaluation](https://github.com/munhoz-iago/secdocs-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/munhoz-iago/secdocs-rag/actions/workflows/ci.yml)
+
 Assistente local em **Java 21** para consultar três documentos públicos da OWASP com citações. Ele ingere Markdown, divide por seção, armazena vetores no PostgreSQL com pgvector, compara busca vetorial, textual e híbrida, e gera respostas com o Ollama. Uma pergunta sem evidência suficiente recebe uma recusa. A página é renderizada pelo Spring com Thymeleaf, sem JavaScript.
+
+![Pergunta, resposta e citação verificável na demonstração local](docs/assets/demo-answer.png)
 
 ## Demonstração local
 
@@ -57,7 +61,7 @@ Para repetir a avaliação após a preparação do banco:
 java -jar $jar --secdocs.eval=true --secdocs.min-recall=0.8 --spring.main.web-application-type=none
 ```
 
-O pipeline do GitHub Actions roda testes Java e recria o banco, vetores e avaliação; o limite de regressão é 80% para a busca vetorial. O workflow foi escrito e ainda precisa ser observado em um repositório GitHub publicado.
+O pipeline do GitHub Actions roda testes Java e recria o banco, vetores e avaliação; o limite de regressão é 80% para a busca vetorial. A [primeira execução pública](https://github.com/munhoz-iago/secdocs-rag/actions/runs/37870314187) passou nos dois jobs.
 
 ## Como funciona
 
@@ -85,3 +89,4 @@ O corpus inicial contém os Cheat Sheets [SQL Injection Prevention](https://chea
 - [Recuperação e geração](docs/decisions/0002-retrieval-and-generation.md)
 - [Avaliações reproduzíveis](EVALS.md)
 - [Guia geral para estudar o projeto](GUIA_GERAL_SECDOCS_RAG.md)
+- [Plano de estudos por sessões](PLANO_DE_ESTUDOS.md)

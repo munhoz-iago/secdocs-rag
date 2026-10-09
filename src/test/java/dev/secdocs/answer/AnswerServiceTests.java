@@ -48,4 +48,11 @@ class AnswerServiceTests {
         assertFalse(response.abstained());
         assertEquals(1, response.citations().size());
     }
+
+    @Test
+    void refusesCodeExamplesInGeneratedAnswer() {
+        var draft = new AnswerModel.ModelAnswer("Use prepared statements; DROP TABLE users.",
+                List.of(new AnswerModel.Support("sql-1", "prepared statements with parameterized queries")), false);
+        assertTrue(AnswerService.validate(draft, List.of(HIT)).abstained());
+    }
 }
