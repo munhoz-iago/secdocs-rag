@@ -76,7 +76,7 @@ O limiar de similaridade `0,55` foi escolhido observando o conjunto anterior, de
 - [`ProbePromptInjection`](src/main/java/dev/secdocs/eval/ProbePromptInjection.java) testa uma instrução maliciosa em evidência sintética.
 - [`ApiRateLimitFilter`](src/main/java/dev/secdocs/ApiRateLimitFilter.java) limita chamadas locais por IP.
 
-O CI contém testes Java e um job que recria banco, corpus, embeddings e a avaliação. A primeira execução no GitHub passou nos dois jobs, mas cobriu a versão anterior, com três documentos e 30 perguntas; veja o [registro da execução](https://github.com/munhoz-iago/secdocs-rag/actions/runs/37870314187). O acervo atual ainda não foi executado no CI.
+O CI contém testes Java e um job que recria banco, corpus, embeddings e a avaliação. A [execução do acervo atual](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38010444859) passou nos dois jobs com 300 trechos e reproduziu os resultados de busca da avaliação local. Ela não avalia a qualidade de todas as respostas geradas.
 
 ## 4. O que os números mostram
 
@@ -120,7 +120,7 @@ Para estudar o código em ordem: comece por `DocumentChunk`, `MarkdownChunker`, 
 
 > “Construí em Java um RAG local sobre 30 arquivos da OWASP (Cheat Sheets, Top 10:2025 e ASVS 5.0), divididos em 300 trechos. Uso PostgreSQL com pgvector para busca vetorial, comparo com busca textual e RRF, e avalio recuperação com 45 perguntas. Numa execução local, a busca vetorial encontrou a fonte esperada no top 5 em 39 das 40 perguntas respondíveis e a híbrida, em 38; por isso a geração usa a vetorial. O modelo local responde com citações que o servidor valida literalmente, e prefere recusar a aceitar uma citação que não confere. Sei que essas perguntas foram escritas por mim, que o conjunto é pequeno e que citação literal não prova cada afirmação; documentei esses limites, as recusas indevidas que observei e o próximo experimento, com perguntas independentes.”
 
-Mostre o código, o [resultado por pergunta](evals/results.json) e a [execução do CI](https://github.com/munhoz-iago/secdocs-rag/actions/runs/37870314187), que cobriu a versão anterior, com três documentos; o acervo atual ainda não foi executado no CI. Diga com clareza que uma demo local e um CI verde não tornam a API pronta para produção. Essa honestidade facilita uma conversa técnica real.
+Mostre o código, o [resultado por pergunta](evals/results.json) e a [execução do CI no acervo atual](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38010444859). Diga com clareza que uma demo local e um CI verde não tornam a API pronta para produção. Essa honestidade facilita uma conversa técnica real.
 
 ## 8. Próximos passos úteis
 

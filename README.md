@@ -65,7 +65,7 @@ Para repetir a avaliação após a preparação do banco:
 java -jar $jar --secdocs.eval=true --secdocs.min-recall=0.8 --spring.main.web-application-type=none
 ```
 
-O pipeline do GitHub Actions roda testes Java e recria o banco, vetores e avaliação; o limite de regressão é 80% para a busca vetorial. A [primeira execução pública](https://github.com/munhoz-iago/secdocs-rag/actions/runs/37870314187) passou nos dois jobs, mas cobriu a versão anterior, com três documentos e 30 perguntas. O acervo atual ainda não foi executado no CI; os números acima vêm de uma execução local.
+O pipeline do GitHub Actions roda testes Java e recria o banco, vetores e avaliação; o limite de regressão é 80% para a busca vetorial. A [execução do acervo atual](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38010444859) passou nos dois jobs em banco e Ollama limpos: 300 trechos, 39/40 na busca vetorial, 27/40 na textual e 38/40 na híbrida, iguais à avaliação local. O CI mede recuperação, não a taxa de respostas legítimas recusadas pelo gerador.
 
 ## Como funciona
 

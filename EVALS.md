@@ -62,7 +62,7 @@ java -jar $jar --secdocs.eval=true --secdocs.min-recall=0.8 --spring.main.web-ap
 java -jar $jar --secdocs.probe-injection=true --spring.main.web-application-type=none
 ```
 
-O primeiro comando falha se o recall@5 vetorial ficar abaixo de 80%. O job `retrieval-eval` do CI executa ingestão, embeddings e essa avaliação em banco e Ollama limpos. A [primeira execução pública](https://github.com/munhoz-iago/secdocs-rag/actions/runs/37870314187) passou, incluindo o job de avaliação, mas cobriu a versão anterior (3 documentos, 30 perguntas). O acervo atual ainda não foi executado no CI; os números acima vêm de uma execução local.
+O primeiro comando falha se o recall@5 vetorial ficar abaixo de 80%. O job `retrieval-eval` do CI executa ingestão, embeddings e essa avaliação em banco e Ollama limpos. A [execução do acervo atual](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38010444859) passou nos dois jobs: gravou 300 trechos e repetiu 39/40, 27/40 e 38/40 nos modos vetorial, textual e híbrido. O CI não mede a taxa de recusas indevidas do gerador.
 
 ## Próximos experimentos
 
