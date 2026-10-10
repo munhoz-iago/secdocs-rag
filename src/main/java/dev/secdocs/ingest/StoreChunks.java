@@ -8,9 +8,12 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.ApplicationArguments;
@@ -64,15 +67,12 @@ public class StoreChunks implements ApplicationRunner {
         for (String line : Files.readAllLines(input, StandardCharsets.UTF_8)) {
             if (!line.isBlank()) {
                 DocumentChunk chunk = objectMapper.readValue(line, DocumentChunk.class);
-                if (chunk.sourceId() == null || chunk.sourceId().isBlank()) {
-                    throw new IllegalStateException("Trecho sem sourceId: " + chunk.id());
-                }
                 chunks.add(chunk);
             }
         }
-        if (chunks.isEmpty()) {
-            throw new IllegalStateException("Arquivo de trechos está vazio: " + input);
-        }
+        List<OwaspSource> sources = new SourceCatalog().load();
+        validatePreflight(chunks, sources);
+        String[] catalogIds = sources.stream().map(OwaspSource::id).toArray(String[]::new);
 
         String url = requiredEnv("SECDOCS_DB_URL");
         String user = requiredEnv("SECDOCS_DB_USER");
@@ -106,6 +106,11 @@ public class StoreChunks implements ApplicationRunner {
                         prune.executeUpdate();
                     }
                 }
+                try (PreparedStatement pruneRemovedSources = connection.prepareStatement(
+                        "DELETE FROM document_chunks WHERE NOT (source_id = ANY (?))")) {
+                    pruneRemovedSources.setArray(1, connection.createArrayOf("text", catalogIds));
+                    pruneRemovedSources.executeUpdate();
+                }
                 connection.commit();
             } catch (Exception error) {
                 connection.rollback();
@@ -117,6 +122,52 @@ public class StoreChunks implements ApplicationRunner {
                 result.next();
                 System.out.printf("%d trechos enviados; %d trechos no banco%n", chunks.size(), result.getLong(1));
             }
+        }
+    }
+
+    static void validatePreflight(List<DocumentChunk> chunks, List<OwaspSource> sources) {
+        if (chunks.isEmpty()) {
+            throw new IllegalStateException("Arquivo de trechos está vazio; rode a ingestão novamente");
+        }
+        Map<String, OwaspSource> catalog = new LinkedHashMap<>();
+        for (OwaspSource source : sources) {
+            if (catalog.putIfAbsent(source.id(), source) != null) {
+                throw new IllegalStateException("Fonte duplicada no catálogo: " + source.id());
+            }
+        }
+        if (catalog.isEmpty()) {
+            throw new IllegalStateException("Catálogo de fontes vazio");
+        }
+
+        Set<String> seenIds = new HashSet<>();
+        Set<String> seenSources = new HashSet<>();
+        for (DocumentChunk chunk : chunks) {
+            if (chunk.id() == null || chunk.id().isBlank()) {
+                throw new IllegalStateException("Trecho sem id: " + chunk.sourceId());
+            }
+            if (!seenIds.add(chunk.id())) {
+                throw new IllegalStateException("ID de trecho duplicado: " + chunk.id());
+            }
+            if (chunk.sourceId() == null || chunk.sourceId().isBlank()) {
+                throw new IllegalStateException("Trecho sem sourceId: " + chunk.id());
+            }
+            OwaspSource source = catalog.get(chunk.sourceId());
+            if (source == null) {
+                throw new IllegalStateException("Fonte fora do catálogo atual; rode a ingestão novamente: "
+                        + chunk.sourceId());
+            }
+            if (!source.revision().equals(chunk.revision()) || !source.sourceUrl().equals(chunk.sourceUrl())
+                    || !source.title().equals(chunk.sourceTitle()) || !source.license().equals(chunk.license())) {
+                throw new IllegalStateException("Metadados desatualizados para " + chunk.sourceId()
+                        + "; rode a ingestão novamente");
+            }
+            seenSources.add(chunk.sourceId());
+        }
+        if (!seenSources.containsAll(catalog.keySet())) {
+            Set<String> missing = new LinkedHashSet<>(catalog.keySet());
+            missing.removeAll(seenSources);
+            throw new IllegalStateException("Fontes ausentes no arquivo de trechos; rode a ingestão novamente: "
+                    + missing);
         }
     }
 

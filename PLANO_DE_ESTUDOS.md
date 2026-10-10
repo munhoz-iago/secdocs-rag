@@ -7,7 +7,7 @@ Este plano transforma o repositório em um percurso de aprendizado. Cada sessão
 | Sessão | Leia | Faça | Explique em voz alta |
 |---|---|---|---|
 | 1 | `DocumentChunk`, `MarkdownChunker` | Desenhe o caminho de um Markdown até um trecho | Por que `record` é adequado para estes dados? |
-| 2 | `OwaspIngestion`, `SourceCatalog` | Identifique revisão, URL e licença de cada fonte | Como a revisão fixa ajuda a reproduzir o corpus? |
+| 2 | `OwaspIngestion`, `SourceCatalog`, `owasp-sources.properties` | Identifique repositório, revisão, URL e licença de cada uma das 30 fontes | Como a revisão fixa ajuda a reproduzir o corpus? |
 | 3 | `StoreChunks` e migração V1 | Execute a gravação duas vezes e compare a contagem | O que é upsert e quando um vetor deve ser invalidado? |
 | 4 | `AnswerController`, `WebPageController` | Faça uma pergunta pela API e pelo formulário | Onde ocorre a validação de entrada? |
 | 5 | Testes `MarkdownChunkerTests` | Acrescente um teste para um título ou trecho limite | Qual comportamento o teste protege? |
@@ -20,7 +20,7 @@ Este plano transforma o repositório em um percurso de aprendizado. Cada sessão
 | 7 | Migração V2, `VectorSql` | Compare a consulta de distância com a lista retornada | O que a distância de cosseno ordena? |
 | 8 | `SearchEngine.keyword` | Teste a mesma pergunta em português e inglês | Por que o índice textual inglês pode perder a pergunta em português? |
 | 9 | `SearchEngine.fuse` | Calcule à mão o RRF de dois resultados | Por que RRF usa posição e não trata score como probabilidade? |
-| 10 | `evals/results.json` | Analise `auth-08` | Como a fusão fez o trecho certo sair do top 5? |
+| 10 | `evals/results.json` | Encontre uma pergunta que a busca vetorial acerta e a híbrida perde (na execução atual, `auth-06`; na anterior era `auth-08`) | Como a fusão fez o trecho certo sair do top 5? |
 
 ## Semana 3 — Respostas, citações e segurança
 
@@ -57,7 +57,7 @@ Link para commit, teste ou avaliação:
 
 ## Próximo experimento independente
 
-O conjunto atual tem 30 perguntas e foi criado com conhecimento das seções. Para medir generalização, peça a outra pessoa que escreva perguntas reais sem consultar `evals/results.json`. Registre a fonte esperada antes de rodar qualquer busca. Separe perguntas com resposta das que estão próximas do tema mas fora do corpus. Só então avalie recuperação, recusa e fundamentação. Não ajuste o limiar olhando o mesmo conjunto usado para reportar o resultado final.
+O conjunto atual tem 45 perguntas e foi criado com conhecimento das seções. Para medir generalização, siga o [protocolo para avaliação independente](BLIND_EVAL_PROTOCOL.md): peça a outra pessoa que escreva perguntas reais sem consultar `evals/results.json`. Registre a fonte esperada antes de rodar qualquer busca. Separe perguntas com resposta das que estão próximas do tema mas fora do corpus. Só então avalie recuperação, recusa e fundamentação. Não ajuste o limiar olhando o mesmo conjunto usado para reportar o resultado final.
 
 ## Perguntas frequentes de entrevista
 

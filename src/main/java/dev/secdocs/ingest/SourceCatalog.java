@@ -17,12 +17,11 @@ public class SourceCatalog {
             properties.load(input);
         }
 
-        String revision = required(properties, "revision");
-        String license = required(properties, "license");
         return Arrays.stream(required(properties, "sources").split(","))
                 .map(String::trim)
                 .map(id -> new OwaspSource(id, required(properties, id + ".title"),
-                        required(properties, id + ".path"), revision, license))
+                        required(properties, id + ".repository"), required(properties, id + ".path"),
+                        required(properties, id + ".revision"), required(properties, id + ".license")))
                 .toList();
     }
 

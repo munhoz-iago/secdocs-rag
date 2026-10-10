@@ -2,6 +2,7 @@
   {
     "id": "sql-01",
     "question": "Como consultas parametrizadas ajudam a prevenir SQL injection?",
+    "englishQuestion": "How do parameterized queries help prevent SQL injection?",
     "expectedChunkIds": [
       "sql-injection-5",
       "sql-injection-6"
@@ -12,6 +13,7 @@
   {
     "id": "sql-02",
     "question": "Mostre o princípio de um PreparedStatement seguro em Java.",
+    "englishQuestion": "Show the principle of a safe Java PreparedStatement.",
     "expectedChunkIds": [
       "sql-injection-6"
     ],
@@ -30,6 +32,7 @@
   {
     "id": "sql-04",
     "question": "Como validar nomes de tabelas que não aceitam bind variables?",
+    "englishQuestion": "How should table names that cannot use bind variables be validated?",
     "expectedChunkIds": [
       "sql-injection-15",
       "sql-injection-16"
@@ -40,6 +43,7 @@
   {
     "id": "sql-05",
     "question": "Escapar toda a entrada do usuário é uma defesa recomendada contra SQL injection?",
+    "englishQuestion": "Is escaping all user input a recommended defense against SQL injection?",
     "expectedChunkIds": [
       "sql-injection-19"
     ],
@@ -59,6 +63,7 @@
   {
     "id": "sql-07",
     "question": "Como views SQL podem limitar o acesso a dados?",
+    "englishQuestion": "How can SQL views restrict access to data?",
     "expectedChunkIds": [
       "sql-injection-25"
     ],
@@ -77,6 +82,7 @@
   {
     "id": "xss-01",
     "question": "Qual codificação usar ao inserir texto não confiável entre tags HTML?",
+    "englishQuestion": "What encoding should be used for untrusted text between HTML tags?",
     "expectedChunkIds": [
       "xss-5"
     ],
@@ -95,6 +101,7 @@
   {
     "id": "xss-03",
     "question": "Como tratar dados inseridos em um script JavaScript inline?",
+    "englishQuestion": "How should data inserted into an inline JavaScript script be handled?",
     "expectedChunkIds": [
       "xss-7"
     ],
@@ -113,6 +120,7 @@
   {
     "id": "xss-05",
     "question": "Como proteger um valor não confiável usado em uma URL?",
+    "englishQuestion": "How should an untrusted value used in a URL be protected?",
     "expectedChunkIds": [
       "xss-9",
       "xss-10"
@@ -123,6 +131,7 @@
   {
     "id": "xss-06",
     "question": "Quando é necessário sanitizar HTML enviado por usuários?",
+    "englishQuestion": "When is sanitizing user submitted HTML necessary?",
     "expectedChunkIds": [
       "xss-12"
     ],
@@ -141,6 +150,7 @@
   {
     "id": "xss-08",
     "question": "Por que confiar apenas em CSP é insuficiente para prevenir XSS?",
+    "englishQuestion": "Why is relying only on CSP insufficient to prevent XSS?",
     "expectedChunkIds": [
       "xss-18",
       "xss-19",
@@ -152,6 +162,7 @@
   {
     "id": "auth-01",
     "question": "Quais controles de força de senha a OWASP recomenda?",
+    "englishQuestion": "What password strength controls does OWASP recommend?",
     "expectedChunkIds": [
       "authentication-5",
       "authentication-6"
@@ -171,6 +182,7 @@
   {
     "id": "auth-03",
     "question": "Como armazenar senhas de forma segura?",
+    "englishQuestion": "How should passwords be stored securely?",
     "expectedChunkIds": [
       "authentication-9"
     ],
@@ -189,6 +201,7 @@
   {
     "id": "auth-05",
     "question": "Como mensagens de erro de login podem permitir enumeração de usuários?",
+    "englishQuestion": "How can login error messages enable user enumeration?",
     "expectedChunkIds": [
       "authentication-20",
       "authentication-21",
@@ -209,6 +222,7 @@
   {
     "id": "auth-07",
     "question": "O que é login throttling?",
+    "englishQuestion": "What is login throttling?",
     "expectedChunkIds": [
       "authentication-28"
     ],
@@ -227,6 +241,7 @@
   {
     "id": "auth-09",
     "question": "Qual é a diferença entre OAuth e OpenID Connect?",
+    "englishQuestion": "What is the difference between OAuth and OpenID Connect?",
     "expectedChunkIds": [
       "authentication-34",
       "authentication-35"
@@ -235,32 +250,142 @@
     "referenceAnswer": "OAuth é um framework de autorização para acesso delegado; OpenID Connect acrescenta uma camada de identidade sobre OAuth."
   },
   {
+    "id": "top10-01",
+    "question": "According to OWASP Top 10 2025, what can cause a software supply chain failure?",
+    "expectedChunkIds": ["top10-a03-3"],
+    "answerable": true,
+    "referenceAnswer": "Compromised build, distribution or update processes and vulnerable or malicious third-party dependencies can cause failures."
+  },
+  {
+    "id": "top10-02",
+    "question": "What is an injection vulnerability in OWASP Top 10 2025?",
+    "expectedChunkIds": ["top10-a05-3"],
+    "answerable": true,
+    "referenceAnswer": "Untrusted input reaches an interpreter and is executed as commands."
+  },
+  {
+    "id": "top10-03",
+    "question": "Which events should be logged to help detect security incidents?",
+    "expectedChunkIds": ["top10-a09-3"],
+    "answerable": true,
+    "referenceAnswer": "Log auditable events including logins, failed logins and high-value transactions, and monitor them."
+  },
+  {
+    "id": "top10-04",
+    "question": "What are examples of mishandled exceptional conditions?",
+    "expectedChunkIds": ["top10-a10-3"],
+    "answerable": true,
+    "referenceAnswer": "A program may fail to prevent, detect or respond to unusual situations, leaving it in an unknown state."
+  },
+  {
+    "id": "top10-05",
+    "question": "Which CWEs are mentioned under broken access control in Top 10 2025?",
+    "expectedChunkIds": ["top10-a01-1"],
+    "answerable": true,
+    "referenceAnswer": "The category mentions exposure of sensitive information, SSRF and CSRF among notable CWEs."
+  },
+  {
+    "id": "asvs-01",
+    "question": "What does ASVS 5.0 say about the timing of output encoding?",
+    "expectedChunkIds": ["asvs-v1-3"],
+    "answerable": true,
+    "referenceAnswer": "Encode near the dangerous output context; doing it too early can make it ineffective."
+  },
+  {
+    "id": "asvs-02",
+    "question": "What HSTS maximum age does ASVS 5.0 require?",
+    "expectedChunkIds": ["asvs-v3-5"],
+    "answerable": true,
+    "referenceAnswer": "The HSTS maximum age must be at least one year."
+  },
+  {
+    "id": "asvs-03",
+    "question": "How can a GraphQL API limit expensive nested queries under ASVS 5.0?",
+    "expectedChunkIds": ["asvs-v4-4"],
+    "answerable": true,
+    "referenceAnswer": "Use a query allowlist, depth or amount limits, or query cost analysis."
+  },
+  {
+    "id": "asvs-04",
+    "question": "What should a file upload validator compare with the extension?",
+    "expectedChunkIds": ["asvs-v5-3"],
+    "answerable": true,
+    "referenceAnswer": "It should validate that file contents match the expected extension and type."
+  },
+  {
+    "id": "asvs-05",
+    "question": "What session timeouts does ASVS 5.0 require?",
+    "expectedChunkIds": ["asvs-v7-4"],
+    "answerable": true,
+    "referenceAnswer": "It requires an inactivity timeout and an absolute maximum lifetime based on risk and documented decisions."
+  },
+  {
+    "id": "asvs-06",
+    "question": "At which levels should ASVS authorization controls apply?",
+    "expectedChunkIds": ["asvs-v8-3"],
+    "answerable": true,
+    "referenceAnswer": "Controls should restrict functions, specific data items, and fields according to explicit permissions."
+  },
+  {
+    "id": "asvs-07",
+    "question": "How should self-contained tokens be checked before accepting their contents?",
+    "expectedChunkIds": ["asvs-v9-2"],
+    "answerable": true,
+    "referenceAnswer": "Validate their digital signature or MAC before accepting the contents."
+  },
+  {
+    "id": "asvs-08",
+    "question": "What can an OAuth client use against browser-based request forgery in the code flow?",
+    "expectedChunkIds": ["asvs-v10-4"],
+    "answerable": true,
+    "referenceAnswer": "It can use PKCE or validate the state parameter."
+  },
+  {
+    "id": "asvs-09",
+    "question": "Where should backend secrets be stored according to ASVS 5.0?",
+    "expectedChunkIds": ["asvs-v13-4"],
+    "answerable": true,
+    "referenceAnswer": "Use a secrets management solution such as a key vault; keep secrets out of source and build artifacts."
+  },
+  {
+    "id": "asvs-10",
+    "question": "How does ASVS 5.0 protect logs from tampering?",
+    "expectedChunkIds": ["asvs-v16-5"],
+    "answerable": true,
+    "referenceAnswer": "Protect logs from unauthorized access and modification and transmit them securely to a separate system."
+  },
+  {
     "id": "none-01",
     "question": "Qual é o preço atual de uma instância AWS EC2 t3.micro em São Paulo?",
+    "englishQuestion": "What is the current price of an AWS EC2 t3.micro instance in Sao Paulo?",
     "expectedChunkIds": [],
     "answerable": false
   },
   {
     "id": "none-02",
     "question": "Quem ganhou a Copa do Mundo FIFA de 2026?",
+    "englishQuestion": "Who won the 2026 FIFA World Cup?",
     "expectedChunkIds": [],
     "answerable": false
   },
   {
     "id": "none-03",
     "question": "Qual é a previsão do tempo amanhã em Campinas?",
+    "englishQuestion": "What is tomorrow's weather forecast in Campinas?",
     "expectedChunkIds": [],
     "answerable": false
   },
   {
     "id": "none-04",
     "question": "Quanto custa uma licença do Microsoft 365 Business hoje?",
+    "englishQuestion": "How much does a Microsoft 365 Business license cost today?",
     "expectedChunkIds": [],
     "answerable": false
   },
   {
     "id": "none-05",
     "question": "Qual é o telefone pessoal do presidente da OWASP?",
+    "englishQuestion": "What is the personal phone number of the OWASP president?",
     "expectedChunkIds": [],
     "answerable": false
   }

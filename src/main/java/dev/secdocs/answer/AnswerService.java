@@ -16,8 +16,31 @@ import dev.secdocs.search.SearchMode;
 public class AnswerService {
 
     private static final double MIN_VECTOR_SIMILARITY = 0.55;
-    private static final Pattern CODE_LIKE_ANSWER = Pattern.compile(
-            "(?i)[`;'\"]|\\b(?:drop\\s+table|truncate\\s+table|union\\s+select|select\\s+\\*|delete\\s+from|insert\\s+into)\\b");
+    private static final Pattern FENCED_CODE = Pattern.compile("```([^`\\n]*)\\n([\\s\\S]*?)```");
+    private static final Pattern FENCE_LANGUAGE = Pattern.compile("[A-Za-z0-9_+-]{0,20}");
+    private static final Pattern INLINE_CODE = Pattern.compile("(?<!`)`([^`\\n]+)`(?!`)");
+    private static final Pattern UNMARKED_SQL = Pattern.compile(
+            "(?i)\\b(?:drop\\W+table|truncate\\W+table|union\\W+(?:all\\W+)?select|select\\W*\\*"
+                    + "|delete\\W+from|insert\\W+into)",
+            Pattern.UNICODE_CHARACTER_CLASS);
+    // Code signals outside verified code spans. Typographic quotes and plain quoted terms stay allowed;
+    // ASCII quotes are only refused next to SQL operators, comments or tautologies. A semicolon is
+    // ordinary punctuation in Portuguese prose, so it is refused only in a code-like position.
+    private static final String CODE_SEMICOLON =
+            "[)\\]}'\"]\\s*;"
+                    + "|;(?=\\S)"
+                    + "|;\\s*(?:--|#|/\\*|//)"
+                    + "|(?i:;\\s*(?:select|insert|update|delete|drop|union|exec|execute|shutdown|truncate"
+                    + "|alter|create|grant|declare|waitfor)\\b)"
+                    + "|=\\s*[^\\s;]+\\s*;"
+                    + "|(?i:\\b(?:select\\b[^;\\n]*\\bfrom|update\\s+\\w+\\s+set)\\b[^;\\n]*;)";
+    private static final Pattern UNMARKED_CODE = Pattern.compile(
+            "`|~~~|" + CODE_SEMICOLON + "|<[a-zA-Z/!]|\\||\\$\\(|&&"
+                    + "|(?m:^(?: {4}|\\t)[ \\t]*(?![-*+]\\s|\\d+[.)]\\s)\\S)"
+                    + "|(?<![\\w-])--?[a-zA-Z]"
+                    + "|['\"]\\s*(?:[=<>]|--|#|/\\*)|[=<>]\\s*['\"]"
+                    + "|(?i:\\b(?:or|and)\\W+\\w+\\W*(?:=|<|>|\\blike\\b))",
+            Pattern.UNICODE_CHARACTER_CLASS);
     private static final String NO_ANSWER = "Não encontrei informação suficiente nos documentos consultados para responder com segurança.";
 
     private final SearchEngine searchEngine;
@@ -35,16 +58,27 @@ public class AnswerService {
             return abstain();
         }
 
-        // The measured vector run found 25/25 expected chunks at five; hybrid found 24/25.
+        // Keep retrieval selection explicit until an independent evaluation justifies changing it.
         List<SearchHit> evidence = vector;
         AnswerModel.ModelAnswer draft = answerModel.generate(question, evidence);
-        return validate(draft, evidence);
+        AnswerResponse response = validate(draft, evidence);
+        if (response.abstained() && hasLiteralValidationFailure(draft)) {
+            return validate(answerModel.generateRepair(question, evidence), evidence);
+        }
+        return response;
+    }
+
+    private static boolean hasLiteralValidationFailure(AnswerModel.ModelAnswer draft) {
+        // Other abstentions are deliberate or structurally invalid, so only citation/code failures qualify.
+        return draft != null && !draft.abstained() && draft.answer() != null
+                && !draft.answer().isBlank() && draft.answer().length() <= 4000
+                && draft.supports() != null && !draft.supports().isEmpty()
+                && draft.supports().size() <= 3;
     }
 
     public static AnswerResponse validate(AnswerModel.ModelAnswer draft, List<SearchHit> evidence) {
         if (draft == null || draft.abstained() || draft.answer() == null
                 || draft.answer().isBlank() || draft.answer().length() > 4000
-                || CODE_LIKE_ANSWER.matcher(draft.answer()).find()
                 || draft.supports() == null || draft.supports().isEmpty()
                 || draft.supports().size() > 3) {
             return abstain();
@@ -60,7 +94,8 @@ public class AnswerService {
                         && evidence.stream().anyMatch(hit -> hit.id().equals(support.id())
                                 && hit.content().contains(support.quote())))
                 .toList();
-        if (verifiedSupports.isEmpty()) {
+        if (verifiedSupports.size() != draft.supports().size()
+                || !codeIsLiteral(draft.answer(), verifiedSupports)) {
             return abstain();
         }
         List<Citation> citations = verifiedSupports.stream()
@@ -71,6 +106,29 @@ public class AnswerService {
                 }).distinct()
                 .toList();
         return new AnswerResponse(draft.answer().trim(), false, citations);
+    }
+
+    private static boolean codeIsLiteral(String answer, List<AnswerModel.Support> supports) {
+        var fenced = FENCED_CODE.matcher(answer);
+        while (fenced.find()) {
+            if (!FENCE_LANGUAGE.matcher(fenced.group(1).strip()).matches()
+                    || !appearsInQuote(fenced.group(2).trim(), supports)) {
+                return false;
+            }
+        }
+        String withoutCode = fenced.replaceAll(" ");
+        var inline = INLINE_CODE.matcher(withoutCode);
+        while (inline.find()) {
+            if (!appearsInQuote(inline.group(1), supports)) {
+                return false;
+            }
+        }
+        String prose = inline.replaceAll(" ");
+        return !UNMARKED_CODE.matcher(prose).find() && !UNMARKED_SQL.matcher(prose).find();
+    }
+
+    private static boolean appearsInQuote(String code, List<AnswerModel.Support> supports) {
+        return !code.isBlank() && supports.stream().anyMatch(support -> support.quote().contains(code));
     }
 
     private static AnswerResponse abstain() {

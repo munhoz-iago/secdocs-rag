@@ -37,7 +37,7 @@
     <header>
       <div class="eyebrow">Java · PostgreSQL + pgvector · Ollama local</div>
       <h1>SecDocs RAG</h1>
-      <p class="lead">Pergunte sobre SQL injection, XSS ou autenticação. Cada resposta traz trechos verificáveis dos Cheat Sheets da OWASP. Quando a evidência é insuficiente, o assistente se abstém.</p>
+      <p class="lead">Pergunte sobre os Cheat Sheets de SQL injection, XSS e autenticação, o Top 10:2025 ou o ASVS 5.0. Cada resposta traz trechos verificáveis dos documentos da OWASP. Quando a evidência é insuficiente, o assistente se abstém.</p>
     </header>
     <form class="panel" action="/consultar" method="post">
       <label for="question">Sua pergunta</label>
@@ -60,7 +60,7 @@
         <blockquote th:text="${citation.excerpt}"></blockquote>
       </div>
     </section>
-    <footer>Fontes: OWASP Cheat Sheet Series. Projeto educacional; confira sempre o documento original antes de aplicar uma recomendação de segurança.</footer>
+    <footer>Fontes: OWASP Cheat Sheet Series, OWASP Top 10:2025 e OWASP ASVS 5.0, sob licença CC BY-SA 4.0. Projeto educacional; confira sempre o documento original antes de aplicar uma recomendação de segurança.</footer>
   </main>
 </body>
 </html>

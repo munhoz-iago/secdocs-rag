@@ -2,6 +2,7 @@ package dev.secdocs;
 
 import java.net.URI;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +14,10 @@ import dev.secdocs.answer.AnswerService;
 
 @Controller
 public class WebPageController {
+    // Only pinned OWASP Markdown files: no query, fragment, port, userinfo, percent-encoding or backslash.
+    private static final Pattern SAFE_SOURCE_URL = Pattern.compile(
+            "https://github\\.com/OWASP/(?:CheatSheetSeries|Top10|ASVS)/blob/[0-9a-f]{40}(?:/[A-Za-z0-9_.-]+)+\\.md");
+
     private final AnswerService answers;
 
     public WebPageController(AnswerService answers) {
@@ -45,20 +50,21 @@ public class WebPageController {
                 citation.section(), citation.excerpt(), safeUrl(citation.sourceUrl()))).toList();
     }
 
-    private static String safeUrl(String sourceUrl) {
+    static String safeUrl(String sourceUrl) {
+        if (sourceUrl == null || !SAFE_SOURCE_URL.matcher(sourceUrl).matches()
+                || sourceUrl.contains("/./") || sourceUrl.contains("/../")) {
+            return null;
+        }
         try {
             URI uri = URI.create(sourceUrl);
-            String host = uri.getHost();
-            String path = uri.getPath();
-            if ("https".equals(uri.getScheme()) && (
-                    "cheatsheetseries.owasp.org".equals(host)
-                    || ("github.com".equals(host) && path.startsWith("/OWASP/CheatSheetSeries/blob/")))) {
-                return uri.toString();
+            if (!sourceUrl.equals(uri.normalize().toString()) || !"github.com".equals(uri.getHost())) {
+                return null;
             }
         } catch (IllegalArgumentException ignored) {
             // A malformed source URL is displayed only as text.
+            return null;
         }
-        return null;
+        return sourceUrl;
     }
 
     public record DisplayCitation(String title, String section, String excerpt, String url) {

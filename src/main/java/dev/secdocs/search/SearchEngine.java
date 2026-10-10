@@ -6,11 +6,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
@@ -22,6 +27,7 @@ public class SearchEngine {
 
     private static final int CANDIDATES = 20;
     private static final int RRF_K = 60;
+    private static final Pattern WORD = Pattern.compile("[\\p{L}\\p{M}\\p{N}]+");
 
     public List<SearchHit> search(String question, SearchMode mode, int limit) throws Exception {
         if (mode == SearchMode.HYBRID) {
@@ -46,21 +52,58 @@ public class SearchEngine {
         }
     }
 
+    public Set<String> existingChunkIds(Collection<String> ids) throws SQLException {
+        Set<String> existing = new HashSet<>();
+        try (Connection connection = connect();
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT id FROM document_chunks WHERE id = ANY (?)")) {
+            statement.setArray(1, connection.createArrayOf("text", ids.toArray(String[]::new)));
+            try (ResultSet rows = statement.executeQuery()) {
+                while (rows.next()) {
+                    existing.add(rows.getString(1));
+                }
+            }
+        }
+        return existing;
+    }
+
     private static List<SearchHit> keyword(Connection connection, String question, int limit) throws SQLException {
+        String query = orQuery(question);
+        if (query.isEmpty()) {
+            return List.of();
+        }
         String sql = """
+                WITH q AS (SELECT websearch_to_tsquery('english', ?) AS query)
                 SELECT id, source_title, section, source_url, content,
-                       ts_rank_cd(search_text, websearch_to_tsquery('english', ?)) AS score
-                FROM document_chunks
-                WHERE search_text @@ websearch_to_tsquery('english', ?)
+                       ts_rank_cd(search_text, q.query) AS score
+                FROM document_chunks, q
+                WHERE search_text @@ q.query
                 ORDER BY score DESC, id
                 LIMIT ?
                 """;
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, question);
-            statement.setString(2, question);
-            statement.setInt(3, limit);
+            statement.setString(1, query);
+            statement.setInt(2, limit);
             return rows(statement, SearchMode.KEYWORD);
         }
+    }
+
+    /**
+     * Turns free text into plain word tokens joined by OR. Quotes, a leading '-', punctuation and the
+     * literal word "or" are dropped, so the user's text can never act as a websearch_to_tsquery operator.
+     */
+    static String orQuery(String question) {
+        if (question == null) {
+            return "";
+        }
+        List<String> tokens = new ArrayList<>();
+        Matcher word = WORD.matcher(question);
+        while (word.find()) {
+            if (!word.group().equalsIgnoreCase("or")) {
+                tokens.add(word.group());
+            }
+        }
+        return String.join(" OR ", tokens);
     }
 
     private static List<SearchHit> vector(Connection connection, String question, int limit) throws Exception {

@@ -2,7 +2,7 @@
 
 [![Java and retrieval evaluation](https://github.com/munhoz-iago/secdocs-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/munhoz-iago/secdocs-rag/actions/workflows/ci.yml)
 
-Assistente local em **Java 21** para consultar três documentos públicos da OWASP com citações. Ele ingere Markdown, divide por seção, armazena vetores no PostgreSQL com pgvector, compara busca vetorial, textual e híbrida, e gera respostas com o Ollama. Uma pergunta sem evidência suficiente recebe uma recusa. A página é renderizada pelo Spring com Thymeleaf, sem JavaScript.
+Assistente local em **Java 21** para consultar, com citações, 30 arquivos Markdown públicos da OWASP: três Cheat Sheets, as dez categorias do Top 10:2025 e 17 capítulos do ASVS 5.0. Ele ingere Markdown, divide por seção, armazena vetores no PostgreSQL com pgvector, compara busca vetorial, textual e híbrida, e gera respostas com o Ollama. Uma pergunta sem evidência suficiente recebe uma recusa. A página é renderizada pelo Spring com Thymeleaf, sem JavaScript.
 
 ![Pergunta, resposta e citação verificável na demonstração local](docs/assets/demo-answer.png)
 
@@ -45,15 +45,19 @@ Invoke-RestMethod http://localhost:8080/api/ask -Method Post -ContentType 'appli
 
 ## Resultados medidos
 
-Golden set local: 30 perguntas, sendo 25 com fonte esperada e 5 fora do acervo. `Recall@5` significa a proporção das 25 perguntas em que ao menos um trecho esperado apareceu entre os cinco primeiros.
+Golden set atual: 45 perguntas, sendo 40 com fonte esperada e 5 fora do acervo. `Recall@5` significa a proporção das 40 perguntas respondíveis em que ao menos um trecho esperado apareceu entre os cinco primeiros. Quinze perguntas respondíveis em português têm também uma versão em inglês (`englishQuestion`), avaliada separadamente; o relatório mostra o resultado por idioma apenas para esses itens traduzidos.
 
-| Busca | Acertos | Recall@5 |
-|---|---:|---:|
-| Vetorial, `bge-m3:567m` | 25/25 | 100% |
-| Textual, configuração inglesa | 5/25 | 20% |
-| Híbrida, RRF k=60 | 24/25 | 96% |
+**Execução local no acervo atual** (30 fontes, 300 trechos, 45 perguntas, 40 respondíveis):
 
-Esses números são de um conjunto pequeno, criado com conhecimento das seções e usado também para escolher o limiar de recusa. **Não medem qualidade em produção nem provam superioridade geral da busca vetorial.** Como a fusão perdeu um acerto neste conjunto, a geração usa os cinco resultados vetoriais; a API mantém os três modos para experimentos. Veja [EVALS.md](EVALS.md) e os resultados por pergunta em [evals/results.json](evals/results.json).
+| Busca | Acertos | Recall@5 | Itens traduzidos: português | Itens traduzidos: inglês |
+|---|---:|---:|---:|---:|
+| Vetorial, `bge-m3:567m` | 39/40 | 97,5% | 14/15 | 15/15 |
+| Textual, configuração inglesa | 27/40 | 67,5% | 9/15 | 12/15 |
+| Híbrida, RRF k=60 | 38/40 | 95,0% | 14/15 | 14/15 |
+
+A busca vetorial errou só `auth-01` (força de senha, em português), em que trechos do Top 10 e do ASVS sobre senhas ocuparam o top 5. A híbrida errou também `auth-06`, que a vetorial acertou. Na execução anterior (3 documentos, 30 perguntas), os resultados foram 25/25, 5/25 e 24/25; como acervo, perguntas e busca textual mudaram, os números não são diretamente comparáveis.
+
+Esses números vêm de um conjunto pequeno, criado com conhecimento das seções. O limiar de recusa `0,55` foi escolhido no conjunto anterior; neste conjunto, ainda separa as respondíveis (score vetorial máximo de `0,562` a `0,796`) das sem resposta (`0,337` a `0,527`), mas com margem estreita. **Não medem qualidade em produção nem provam superioridade geral da busca vetorial.** A geração continua usando os cinco resultados vetoriais, que também foram os melhores nesta execução; a API mantém os três modos para experimentos. Veja [EVALS.md](EVALS.md), os resultados por pergunta em [evals/results.json](evals/results.json) e o [protocolo para avaliação independente](BLIND_EVAL_PROTOCOL.md), que descreve como medir o sistema com perguntas escritas por outras pessoas.
 
 Para repetir a avaliação após a preparação do banco:
 
@@ -61,13 +65,13 @@ Para repetir a avaliação após a preparação do banco:
 java -jar $jar --secdocs.eval=true --secdocs.min-recall=0.8 --spring.main.web-application-type=none
 ```
 
-O pipeline do GitHub Actions roda testes Java e recria o banco, vetores e avaliação; o limite de regressão é 80% para a busca vetorial. A [primeira execução pública](https://github.com/munhoz-iago/secdocs-rag/actions/runs/37870314187) passou nos dois jobs.
+O pipeline do GitHub Actions roda testes Java e recria o banco, vetores e avaliação; o limite de regressão é 80% para a busca vetorial. A [primeira execução pública](https://github.com/munhoz-iago/secdocs-rag/actions/runs/37870314187) passou nos dois jobs, mas cobriu a versão anterior, com três documentos e 30 perguntas. O acervo atual ainda não foi executado no CI; os números acima vêm de uma execução local.
 
 ## Como funciona
 
 ```mermaid
 flowchart LR
-  A[OWASP Markdown fixado por revisão] --> B[Chunking por títulos]
+  A[30 arquivos OWASP em 3 repositórios, revisões fixas] --> B[Chunking por títulos]
   B --> C[(PostgreSQL + pgvector)]
   C --> D[Busca vetorial e textual]
   D --> E[Comparação RRF]
@@ -81,12 +85,21 @@ O código principal fica em `src/main/java/dev/secdocs`: `ingest` baixa e divide
 
 ## Fontes e licença
 
-O corpus inicial contém os Cheat Sheets [SQL Injection Prevention](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html), [Cross Site Scripting Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html) e [Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html), fixados na revisão `29994dd8a2e6f50fa3d5607b046b54d7c6945afd` do [OWASP Cheat Sheet Series](https://github.com/OWASP/CheatSheetSeries). Os trechos preservam URL, revisão e licença [CC BY-SA 4.0](https://github.com/OWASP/CheatSheetSeries/blob/master/LICENSE.md). O código deste repositório está sob [MIT](LICENSE).
+O acervo reúne 30 arquivos Markdown de três repositórios da OWASP, cada um fixado em uma revisão:
+
+| Projeto | Arquivos | Revisão |
+|---|---:|---|
+| [OWASP Cheat Sheet Series](https://github.com/OWASP/CheatSheetSeries): SQL Injection Prevention, Cross Site Scripting Prevention e Authentication | 3 | `29994dd8a2e6f50fa3d5607b046b54d7c6945afd` |
+| [OWASP Top 10](https://github.com/OWASP/Top10): categorias A01 a A10 do Top 10:2025 | 10 | `3a31f35346c3f4e90f350395124382fa53af2afe` |
+| [OWASP ASVS](https://github.com/OWASP/ASVS): capítulos V1 a V17 do ASVS 5.0 | 17 | `61a544f0fdbb7cc1578e0c3a3037a8a2874a944e` |
+
+A lista completa, com repositório, caminho, revisão e licença de cada arquivo, está em [`src/main/resources/owasp-sources.properties`](src/main/resources/owasp-sources.properties). Os textos são distribuídos pela OWASP sob [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), conforme registrado no catálogo; confira o arquivo de licença de cada repositório na revisão indicada antes de redistribuir. Os trechos preservam URL no GitHub, revisão e licença. O código deste repositório está sob [MIT](LICENSE).
 
 ## Decisões e estudo
 
 - [Embeddings locais multilíngues](docs/decisions/0001-local-multilingual-embeddings.md)
 - [Recuperação e geração](docs/decisions/0002-retrieval-and-generation.md)
 - [Avaliações reproduzíveis](EVALS.md)
+- [Protocolo para avaliação independente](BLIND_EVAL_PROTOCOL.md)
 - [Guia geral para estudar o projeto](GUIA_GERAL_SECDOCS_RAG.md)
 - [Plano de estudos por sessões](PLANO_DE_ESTUDOS.md)

@@ -8,6 +8,9 @@ import java.util.regex.Pattern;
 public class MarkdownChunker {
 
     private static final Pattern HEADING = Pattern.compile("^(#{1,6})\\s+(.+?)\\s*#*\\s*$");
+    private static final Pattern HEADING_IMAGE = Pattern.compile("!\\[[^]]*]\\([^)]*\\)(?:\\{[^}]*})?");
+    private static final Pattern HEADING_LINK = Pattern.compile("\\[([^]]*)]\\([^)]*\\)");
+    private static final Pattern HEADING_ESCAPE = Pattern.compile("\\\\([\\\\`*_{}\\[\\]()#+\\-.!|])");
     private static final int MAX_CHARS = 3500;
 
     public List<DocumentChunk> chunk(OwaspSource source, String markdown) {
@@ -29,7 +32,7 @@ public class MarkdownChunker {
                 while (headingPath.size() >= level) {
                     headingPath.removeLast();
                 }
-                headingPath.add(heading.group(2).trim());
+                headingPath.add(cleanHeading(heading.group(2)));
                 section = String.join(" > ", headingPath);
                 body.setLength(0);
             } else {
@@ -38,6 +41,14 @@ public class MarkdownChunker {
         }
         addSection(chunks, source, section, body.toString());
         return chunks;
+    }
+
+    static String cleanHeading(String raw) {
+        String text = HEADING_IMAGE.matcher(raw).replaceAll("");
+        text = HEADING_LINK.matcher(text).replaceAll("$1");
+        text = HEADING_ESCAPE.matcher(text).replaceAll("$1");
+        text = text.replaceAll("\\s+", " ").trim();
+        return text.isEmpty() ? raw.trim() : text;
     }
 
     private void addSection(List<DocumentChunk> chunks, OwaspSource source, String section, String body) {
