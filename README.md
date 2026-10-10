@@ -43,11 +43,19 @@ $body = @{question='Como consultas parametrizadas previnem SQL injection?'} | Co
 Invoke-RestMethod http://localhost:8080/api/ask -Method Post -ContentType 'application/json' -Body $body
 ```
 
+## Melhorias desta versão
+
+- **Ingestão:** antes de gravar, o programa exige as 30 fontes do catálogo, confere revisão e URL, e rejeita IDs duplicados. A reimportação remove trechos antigos e fontes retiradas do catálogo; conteúdo alterado invalida o embedding correspondente.
+- **Busca e avaliação:** a busca textual combina palavras por OR sem deixar aspas ou `-termo` virarem operadores. O golden set passou a incluir Top 10 e ASVS; as 15 traduções são avaliadas como pares PT/EN, e a avaliação falha se um ID esperado não existir no banco.
+- **Respostas e citações:** todas as citações precisam ser trechos literais de fontes recuperadas. Código exibido só é aceito quando aparece integralmente numa citação validada. Um rascunho rejeitado por citação ou código pode receber uma única tentativa de correção, submetida às mesmas regras. A interface só aceita links Markdown nos três repositórios OWASP, sem caminhos relativos ou hosts alternativos.
+
+**Limite ainda aberto:** a geração com `qwen3:1.7b` pode recusar perguntas legítimas mesmo com os trechos corretos recuperados. O prompt reforçado e a segunda tentativa não resolveram uma pergunta sobre SQL injection no teste local; veja [EVALS.md](EVALS.md) e [LIMITATIONS.md](LIMITATIONS.md). O protocolo de avaliação independente foi preparado, mas as perguntas externas ainda não foram coletadas.
+
 ## Resultados medidos
 
 Golden set atual: 45 perguntas, sendo 40 com fonte esperada e 5 fora do acervo. `Recall@5` significa a proporção das 40 perguntas respondíveis em que ao menos um trecho esperado apareceu entre os cinco primeiros. Quinze perguntas respondíveis em português têm também uma versão em inglês (`englishQuestion`), avaliada separadamente; o relatório mostra o resultado por idioma apenas para esses itens traduzidos.
 
-**Execução local no acervo atual** (30 fontes, 300 trechos, 45 perguntas, 40 respondíveis):
+**Execuções local e no CI no acervo atual** (30 fontes, 300 trechos, 45 perguntas, 40 respondíveis):
 
 | Busca | Acertos | Recall@5 | Itens traduzidos: português | Itens traduzidos: inglês |
 |---|---:|---:|---:|---:|
@@ -65,7 +73,7 @@ Para repetir a avaliação após a preparação do banco:
 java -jar $jar --secdocs.eval=true --secdocs.min-recall=0.8 --spring.main.web-application-type=none
 ```
 
-O pipeline do GitHub Actions roda testes Java e recria o banco, vetores e avaliação; o limite de regressão é 80% para a busca vetorial. A [execução do acervo atual](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38010444859) passou nos dois jobs em banco e Ollama limpos: 300 trechos, 39/40 na busca vetorial, 27/40 na textual e 38/40 na híbrida, iguais à avaliação local. O CI mede recuperação, não a taxa de respostas legítimas recusadas pelo gerador.
+O pipeline do GitHub Actions roda testes Java e recria o banco, vetores e avaliação; o limite de regressão é 80% para a busca vetorial. A [execução do acervo atual](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38010444859) passou com 111 testes Java e, no job de avaliação com banco e Ollama limpos, 300 trechos, 39/40 na busca vetorial, 27/40 na textual e 38/40 na híbrida, iguais à avaliação local. O CI mede recuperação, não a taxa de respostas legítimas recusadas pelo gerador. A prova de injeção de prompt registrada em [evals/prompt-injection-result.json](evals/prompt-injection-result.json) passou em um cenário sintético isolado.
 
 ## Como funciona
 
