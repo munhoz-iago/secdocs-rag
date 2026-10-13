@@ -24,12 +24,14 @@ Esse desenho reduz uma classe de falhas de cópia. Não resolve a interpretaçã
 | Textual e híbrida | 27/40 e 38/40, no mesmo conjunto |
 | Geração antes/depois | 3/6 e 4/6 perguntas legítimas respondidas com citações |
 | Fora do corpus | 2/2 recusadas nas duas versões da geração |
-| Testes Java | 149 testes locais passando |
+| Testes Java | 149 testes passando localmente e no CI |
 | Inspeção semântica | Erro de categoria no Top 10 e ressalvas de escopo no ASVS, preservados no relatório |
 
 Todos os conjuntos são de desenvolvimento, criados com conhecimento do corpus. A comparação de geração usa o mesmo digest do modelo e o mesmo hash da fixture, com uma execução por versão. Prompt e orçamento de saída também mudaram. Não é uma medição independente nem um benchmark de produção.
 
 A revisão do Claude é assistida por modelo. Ela encontrou problemas que o validador literal não identifica; não deve ser tratada como certificação de qualidade. Os [resultados completos](../evals/generation-results.json), a [comparação verificável](../evals/generation-comparison.json) e a [revisão](../evals/generation-review.json) estão disponíveis.
+
+A [validação da versão atual no GitHub](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38338795262) repetiu a recuperação com banco e 300 embeddings recriados do zero. A [demonstração pública foi exportada e publicada automaticamente](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38338795263).
 
 ## Visite em três minutos
 

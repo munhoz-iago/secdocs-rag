@@ -74,7 +74,7 @@ Mesmo conjunto congelado de oito perguntas, mesmo digest de `qwen3:1.7b`, mesmo 
 | Recusas em perguntas legítimas | 3/6 | 2/6 |
 | Perguntas fora do acervo recusadas | 2/2 | 2/2 |
 
-A mudança melhora a disponibilidade nesse conjunto, sem demonstrar melhora geral de fidelidade. Prompt e orçamento de saída também mudaram. [Comparação verificável](evals/generation-comparison.json), [respostas completas](evals/generation-results.json) e [revisão assistida por Claude, não independente](evals/generation-review.json). Há **149 testes Java** passando localmente; a avaliação de geração é opt-in e não roda por padrão no CI.
+A mudança melhora a disponibilidade nesse conjunto, sem demonstrar melhora geral de fidelidade. Prompt e orçamento de saída também mudaram. [Comparação verificável](evals/generation-comparison.json), [respostas completas](evals/generation-results.json) e [revisão assistida por Claude, não independente](evals/generation-review.json). Há **149 testes Java** passando localmente e no CI; a avaliação de geração é opt-in e não roda por padrão no CI.
 
 ## Resultados medidos
 
@@ -98,7 +98,7 @@ Para repetir a avaliação após a preparação do banco:
 java -jar $jar --secdocs.eval=true --secdocs.min-recall=0.8 --spring.main.web-application-type=none
 ```
 
-O pipeline do GitHub Actions roda testes Java e recria o banco, vetores e avaliação; o limite de regressão é 80% para a busca vetorial. A [execução do acervo atual](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38010444859) passou com 111 testes Java e, no job de avaliação com banco e Ollama limpos, 300 trechos, 39/40 na busca vetorial, 27/40 na textual e 38/40 na híbrida, iguais à avaliação local. O CI mede recuperação, não a taxa de respostas legítimas recusadas pelo gerador. A prova de injeção de prompt registrada em [evals/prompt-injection-result.json](evals/prompt-injection-result.json) passou em um cenário sintético isolado.
+O pipeline do GitHub Actions roda testes Java e recria o banco, vetores e avaliação; o limite de regressão é 80% para a busca vetorial. A [execução da versão atual, concluída em 13/10/2026](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38338795262) passou com 149 testes Java e, no job de avaliação com banco e Ollama limpos, 300 trechos, 39/40 na busca vetorial, 27/40 na textual e 38/40 na híbrida, iguais ao snapshot local publicado. A comparação de geração também foi conferida contra os hashes e os registros congelados. O CI mede recuperação, não a taxa de respostas legítimas recusadas pelo gerador. A prova de injeção de prompt registrada em [evals/prompt-injection-result.json](evals/prompt-injection-result.json) passou em um cenário sintético isolado. A [publicação da demonstração](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38338795263) também concluiu com sucesso.
 
 ## Como funciona
 

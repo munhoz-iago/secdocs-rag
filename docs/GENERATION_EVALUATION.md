@@ -74,4 +74,4 @@ Use os totais e cada caso para verificar mudanças em recusas, aceite formal, ma
 .\mvnw.cmd -Dtest=EvaluateGenerationTests test
 ```
 
-Os testes e a avaliação real devem ser executados pelo integrador. Nenhuma medição real de geração é declarada neste documento.
+As medições reais publicadas, suas limitações e a inspeção dos casos estão em [EVALS.md](../EVALS.md). Este documento define o protocolo e o contrato do harness; os exemplos sintéticos acima não representam resultados medidos.

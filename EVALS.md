@@ -62,7 +62,7 @@ java -jar $jar --secdocs.eval=true --secdocs.min-recall=0.8 --spring.main.web-ap
 java -jar $jar --secdocs.probe-injection=true --spring.main.web-application-type=none
 ```
 
-O primeiro comando falha se o recall@5 vetorial ficar abaixo de 80%. O job `retrieval-eval` do CI executa ingestão, embeddings e essa avaliação em banco e Ollama limpos. A [execução do acervo atual](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38010444859) passou nos dois jobs: gravou 300 trechos e repetiu 39/40, 27/40 e 38/40 nos modos vetorial, textual e híbrido. O CI não mede a taxa de recusas indevidas do gerador.
+O primeiro comando falha se o recall@5 vetorial ficar abaixo de 80%. O job `retrieval-eval` do CI executa ingestão, embeddings e essa avaliação em banco e Ollama limpos. A [execução da versão atual, concluída em 13/10/2026](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38338795262) passou nos dois jobs, com 149 testes Java: gravou 300 trechos e repetiu 39/40, 27/40 e 38/40 nos modos vetorial, textual e híbrido. O artefato `retrieval-results` preserva a execução completa. O CI não mede a taxa de recusas indevidas do gerador.
 
 ## Comparação de geração em 12/10/2026
 
@@ -85,4 +85,4 @@ Artefatos: [baseline](evals/generation-baseline.json), [execução atual](evals/
 
 ## Próximos experimentos
 
-Executar a avaliação do acervo atual no CI; criar perguntas independentes segundo o [protocolo para avaliação independente](BLIND_EVAL_PROTOCOL.md), incluindo paráfrases difíceis e temas de segurança próximos mas ausentes; medir recusa e fundamentação manualmente com critérios definidos antes de ajustar o limiar; comparar tamanhos de trechos; testar várias formas de injeção e medir latência em máquinas diferentes.
+Criar perguntas independentes segundo o [protocolo para avaliação independente](BLIND_EVAL_PROTOCOL.md), incluindo paráfrases difíceis e temas de segurança próximos mas ausentes; medir recusa e fundamentação manualmente com critérios definidos antes de ajustar o limiar; comparar tamanhos de trechos e modelos de geração; testar várias formas de injeção e medir latência em máquinas diferentes.
