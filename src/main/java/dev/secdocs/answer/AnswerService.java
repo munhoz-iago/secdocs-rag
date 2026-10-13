@@ -52,20 +52,25 @@ public class AnswerService {
     }
 
     public AnswerResponse answer(String question) throws Exception {
+        long started = System.nanoTime();
         Map<SearchMode, List<SearchHit>> results = searchEngine.compare(question, 5);
         List<SearchHit> vector = results.get(SearchMode.VECTOR);
         if (vector.isEmpty() || vector.getFirst().score() < MIN_VECTOR_SIMILARITY) {
-            return abstain();
+            return withRun(abstain(Outcome.INSUFFICIENT_EVIDENCE), vector, 0, started);
         }
 
         // Keep retrieval selection explicit until an independent evaluation justifies changing it.
         List<SearchHit> evidence = vector;
+        if (EvidencePassages.from(evidence).isEmpty()) {
+            return withRun(abstain(Outcome.INSUFFICIENT_EVIDENCE), evidence, 0, started);
+        }
         AnswerModel.ModelAnswer draft = answerModel.generate(question, evidence);
         AnswerResponse response = validate(draft, evidence);
-        if (response.abstained() && hasLiteralValidationFailure(draft)) {
-            return validate(answerModel.generateRepair(question, evidence), evidence);
+        if (response.abstained() && (hasLiteralValidationFailure(draft)
+                || draft != null && draft.failure() == AnswerModel.Failure.INVALID_CITATION)) {
+            return withRun(validate(answerModel.generateRepair(question, evidence), evidence), evidence, 2, started);
         }
-        return response;
+        return withRun(response, evidence, 1, started);
     }
 
     private static boolean hasLiteralValidationFailure(AnswerModel.ModelAnswer draft) {
@@ -77,27 +82,32 @@ public class AnswerService {
     }
 
     public static AnswerResponse validate(AnswerModel.ModelAnswer draft, List<SearchHit> evidence) {
-        if (draft == null || draft.abstained() || draft.answer() == null
+        if (draft != null && draft.failure() == AnswerModel.Failure.INVALID_RESPONSE) {
+            return abstain(Outcome.INVALID_RESPONSE);
+        }
+        if (draft != null && draft.failure() == AnswerModel.Failure.INVALID_CITATION) {
+            return abstain(Outcome.INVALID_CITATION);
+        }
+        if (draft != null && draft.abstained()) return abstain(Outcome.MODEL_ABSTAINED);
+        if (draft == null || draft.answer() == null
                 || draft.answer().isBlank() || draft.answer().length() > 4000
                 || draft.supports() == null || draft.supports().isEmpty()
                 || draft.supports().size() > 3) {
-            return abstain();
+            return abstain(Outcome.INVALID_RESPONSE);
         }
         Set<String> allowedIds = new HashSet<>();
         for (SearchHit hit : evidence) {
             allowedIds.add(hit.id());
         }
         List<AnswerModel.Support> verifiedSupports = draft.supports().stream()
-                .filter(support -> allowedIds.contains(support.id())
+                .filter(support -> support != null && allowedIds.contains(support.id())
                         && support.quote() != null && support.quote().length() >= 20
                         && support.quote().length() <= 600
                         && evidence.stream().anyMatch(hit -> hit.id().equals(support.id())
                                 && hit.content().contains(support.quote())))
                 .toList();
-        if (verifiedSupports.size() != draft.supports().size()
-                || !codeIsLiteral(draft.answer(), verifiedSupports)) {
-            return abstain();
-        }
+        if (verifiedSupports.size() != draft.supports().size()) return abstain(Outcome.INVALID_CITATION);
+        if (!codeIsLiteral(draft.answer(), verifiedSupports)) return abstain(Outcome.UNSUPPORTED_CODE);
         List<Citation> citations = verifiedSupports.stream()
                 .map(support -> {
                     SearchHit hit = evidence.stream().filter(item -> item.id().equals(support.id()))
@@ -131,11 +141,25 @@ public class AnswerService {
         return !code.isBlank() && supports.stream().anyMatch(support -> support.quote().contains(code));
     }
 
-    private static AnswerResponse abstain() {
-        return new AnswerResponse(NO_ANSWER, true, List.of());
+    private static AnswerResponse abstain(Outcome outcome) {
+        return new AnswerResponse(NO_ANSWER, true, List.of(), outcome, 0, 0, List.of(), "server-passages-v1");
     }
 
-    public record AnswerResponse(String answer, boolean abstained, List<Citation> citations) {
+    private static AnswerResponse withRun(AnswerResponse response, List<SearchHit> evidence, int attempts, long started) {
+        return new AnswerResponse(response.answer(), response.abstained(), response.citations(), response.outcome(),
+                attempts, (System.nanoTime() - started) / 1_000_000, List.copyOf(evidence), "server-passages-v1");
+    }
+
+    public enum Outcome {
+        ANSWERED, INSUFFICIENT_EVIDENCE, MODEL_ABSTAINED, INVALID_CITATION, UNSUPPORTED_CODE, INVALID_RESPONSE
+    }
+
+    public record AnswerResponse(String answer, boolean abstained, List<Citation> citations, Outcome outcome,
+                                 int attempts, long durationMs, List<SearchHit> evidence, String citationStrategy) {
+        public AnswerResponse(String answer, boolean abstained, List<Citation> citations) {
+            this(answer, abstained, citations, abstained ? Outcome.MODEL_ABSTAINED : Outcome.ANSWERED,
+                    0, 0, List.of(), "server-passages-v1");
+        }
     }
 
     public record Citation(String id, String sourceTitle, String section, String sourceUrl, String excerpt) {

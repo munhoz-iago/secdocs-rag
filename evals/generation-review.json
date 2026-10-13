@@ -1,0 +1,46 @@
+{
+  "reviewType": "model-assisted",
+  "independent": false,
+  "after": [
+    {
+      "id": "sql-01",
+      "status": "supported",
+      "reason": "Sustentado por sql-injection-5 e -6: código e dados são separados, o atacante não altera a intenção da consulta, e o literal `tom' or '1'='1` é tratado como dado. O PreparedStatement em Java e o `Parameters.Add()` em C# aparecem em sql-injection-6 e -7. Ressalva menor: 'uma das melhores práticas' é paráfrase solta. O trecho citado não usa esse termo. O que chega perto é 'Primary Defenses' no título da seção e 'preferred option' em top10-a05-4, que não foi citado. 'Como mostrado em exemplos específicos' é vago, mas não afirma nada falso."
+    },
+    {
+      "id": "top10-05",
+      "status": "unsupported",
+      "reason": "A pergunta é quais CWEs aparecem sob Broken Access Control (A01). CWE-200, 201, 918 e 352 estão em top10-a01-1. CWE-668 e 732 estão em top10-a01-8. Já CWE-477, 1104, 1329 e 1395 vêm de top10-a03-1, que é A03 Software Supply Chain Failures, não A01. A resposta os lista como 'Additional CWEs' de broken access control e fecha dizendo que 'These CWEs are part of the broader category of broken access control'. Isso é uma atribuição falsa de 4 dos 10 CWEs. Além disso, o excerto citado de a03-1 nem contém esses CWEs, que só aparecem no conteúdo completo da evidência. A lista de A01 também está incompleta: faltam 749, 862, 863, 922 e 1275, presentes em top10-a01-8. O 'acceptedAnswer=true' e o 'expectedCitationMatch=true' mascaram esse erro semântico."
+    },
+    {
+      "id": "asvs-05",
+      "status": "partial",
+      "reason": "Sustentado: inatividade e tempo máximo absoluto de sessão (7.3.1 e 7.3.2) com reautenticação conforme decisões documentadas, e o término de sessão efetivo na aplicação, no login federado e nas partes confiantes (v7-5). Problemas: (1) 'documentados e justificados em combinação com outros controles' vem de 7.1.1 (asvs-v7-2), que foi recuperado mas não citado. (2) 'sessões únicas e invalidadas quando não mais necessárias' vem do Control Objective (asvs-v7-1), também não citado, e não é um requisito de timeout. (3) 'Requires' é dito sem escopo: 7.3.1 e 7.3.2 são Nível 2, e a resposta não diz isso. (4) O término de sessão foge da pergunta sobre timeouts."
+    },
+    {
+      "id": "asvs-09",
+      "status": "partial",
+      "reason": "Sustentado: key vault, ausência de segredos no código e nos artefatos, e privilégio mínimo (13.3.1 e 13.3.2). Escopo errado: a resposta diz que operações criptográficas 'must be performed' num módulo isolado como um HSM, e que os segredos 'must' expirar e ser rotacionados, tudo em tom universal. Pela evidência, 13.3.3 (módulo isolado) e 13.3.4 (expiração e rotação) são Nível 3. Em 13.3.1, a exigência de solução com suporte em hardware, como um HSM, vale só 'For an L3 application'. 13.3.1 e 13.3.2 são Nível 2. A resposta omite todos esses níveis e apresenta requisitos L3/HSM como obrigação geral. Além disso, os excertos citados não sustentam 13.3.3 e 13.3.4. O de 13.3.1 está truncado em 'Verify that access', e asvs-v13-3 é irrelevante (V13.2, comunicação de backend). A sustentação existe só na evidência recuperada, não nas citações."
+    }
+  ],
+  "before": [
+    {
+      "id": "xss-01",
+      "status": "partial",
+      "reason": "'Use codificação de entidades HTML' é sustentado por xss-5. Porém o Content-Type `application/json` e não `text/html` vem de xss-7 e se aplica explicitamente a JSON ('For JSON, verify...'). A resposta o apresenta como cuidado geral ao inserir texto não confiável entre tags HTML, o que é uma generalização indevida e não responde à pergunta."
+    },
+    {
+      "id": "asvs-05",
+      "status": "supported",
+      "reason": "Os dois excertos citados (inatividade e tempo máximo absoluto, com reautenticação conforme análise de risco e decisões documentadas) cobrem todas as afirmações. 'Proper session management' é só preenchimento. O nível (L2) não é mencionado, mas a resposta também não afirma nada sobre escopo."
+    },
+    {
+      "id": "asvs-09",
+      "status": "supported",
+      "reason": "Key vault, ausência de segredos no código e nos artefatos, e expiração e rotação conforme a documentação estão todos nos excertos citados. Não há afirmação de HSM ou L3, então não há extrapolação de escopo. Ressalva: 'must be configured to expire and be rotated' omite que 13.3.4 é Nível 3, informação que só aparece na evidência do run 'after'. O baseline não armazena a evidência completa, então avaliei só contra os excertos citados."
+    }
+  ],
+  "summary": "Revisão assistida por modelo, não independente nem humana. Só avaliei as respostas não recusadas: 4 no 'after' (sql-01, top10-05, asvs-05, asvs-09) e 3 no 'before' (xss-01, asvs-05, asvs-09). Resultado do 'after': 1 supported, 2 partial e 1 unsupported. Resultado do 'before': 2 supported e 1 partial. Os dois erros mais graves do 'after' passaram nas verificações literais e estruturais. O primeiro é top10-05, que atribui a Broken Access Control quatro CWEs da A03 Supply Chain (477, 1104, 1329, 1395). O segundo é asvs-09, que apresenta como obrigação geral os requisitos L3/HSM e de rotação (13.3.3 e 13.3.4) sem citá-los. No 'after', as citações do servidor garantem que o excerto existe, mas não que a resposta o represente fielmente. Comparação com o baseline: o 'after' tem mais respostas aceitas (4 contra 3) e dois ganhos reais, sql-01 e asvs-05. O 'before' era mais conservador e mais correto em asvs-09, onde não extrapolou para HSM/L3. As recusas (sql-02, xss-01 no 'after'; sql-01, sql-02, top10-05 no 'before') não foram julgadas. A recusa de xss-01 no 'after' parece falsa, pois xss-5 responde diretamente. As recusas de none-01 e none-03 (previsão do tempo e preço de EC2) são corretas.",
+  "reviewer": "Claude Sonnet 5",
+  "generatedAt": "2026-10-13T02:35:09.3332296Z"
+}

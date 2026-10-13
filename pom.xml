@@ -69,6 +69,21 @@
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>evals</directory>
+				<targetPath>evals</targetPath>
+				<filtering>false</filtering>
+				<includes>
+					<include>results.json</include>
+					<include>generation-results.json</include>
+					<include>generation-baseline.json</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

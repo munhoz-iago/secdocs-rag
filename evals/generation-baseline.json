@@ -1,0 +1,151 @@
+{
+  "generatedAt": "2026-10-13T02:22:12.877799Z",
+  "data": "development",
+  "citationStrategy": "literal-quotes-v1",
+  "model": "qwen3:1.7b",
+  "baselineCommit": "3480755a4002f028bdc7c76f6ec79e10e3bf17d8",
+  "jarSha256": "5febe56bf4c3711f0368d1da1d38b435141f3823ab579eb8e9c2464b0de6550e",
+  "fixtureSha256": "e9afcf89099c447533bfa5a6b54291870a32b405553a4d02177f5c3b258273af",
+  "cases": [
+    {
+      "id": "sql-01",
+      "question": "Como consultas parametrizadas ajudam a prevenir SQL injection?",
+      "expectedAnswerable": true,
+      "abstained": true,
+      "acceptedAnswer": false,
+      "elapsedMillis": 84577,
+      "answer": "Não encontrei informação suficiente nos documentos consultados para responder com segurança.",
+      "citations": []
+    },
+    {
+      "id": "sql-02",
+      "question": "Mostre o princípio de um PreparedStatement seguro em Java.",
+      "expectedAnswerable": true,
+      "abstained": true,
+      "acceptedAnswer": false,
+      "elapsedMillis": 68543,
+      "answer": "Não encontrei informação suficiente nos documentos consultados para responder com segurança.",
+      "citations": []
+    },
+    {
+      "id": "xss-01",
+      "question": "Qual codificação usar ao inserir texto não confiável entre tags HTML?",
+      "expectedAnswerable": true,
+      "abstained": false,
+      "acceptedAnswer": true,
+      "elapsedMillis": 102507,
+      "answer": "Para inserir texto não confiável entre tags HTML de forma segura, use a codificação de entidades HTML. Além disso, verifique o `Content-Type` da resposta para evitar ataques de XSS, garantindo que seja `application/json` e não `text/html`.",
+      "citations": [
+        {
+          "id": "xss-5",
+          "sourceTitle": "Cross Site Scripting Prevention Cheat Sheet",
+          "section": "Cross Site Scripting Prevention Cheat Sheet > Output Encoding > Output Encoding for “HTML Contexts”",
+          "sourceUrl": "https://github.com/OWASP/CheatSheetSeries/blob/29994dd8a2e6f50fa3d5607b046b54d7c6945afd/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md",
+          "excerpt": "In order to add a variable to a HTML context safely to a web template, use HTML entity encoding for that variable."
+        },
+        {
+          "id": "xss-7",
+          "sourceTitle": "Cross Site Scripting Prevention Cheat Sheet",
+          "section": "Cross Site Scripting Prevention Cheat Sheet > Output Encoding > Output Encoding for “JavaScript Contexts”",
+          "sourceUrl": "https://github.com/OWASP/CheatSheetSeries/blob/29994dd8a2e6f50fa3d5607b046b54d7c6945afd/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md",
+          "excerpt": "For JSON, verify that the `Content-Type` header is `application/json` and not `text/html` to prevent XSS."
+        }
+      ]
+    },
+    {
+      "id": "top10-05",
+      "question": "Which CWEs are mentioned under broken access control in Top 10 2025?",
+      "expectedAnswerable": true,
+      "abstained": true,
+      "acceptedAnswer": false,
+      "elapsedMillis": 137743,
+      "answer": "Não encontrei informação suficiente nos documentos consultados para responder com segurança.",
+      "citations": []
+    },
+    {
+      "id": "asvs-05",
+      "question": "What session timeouts does ASVS 5.0 require?",
+      "expectedAnswerable": true,
+      "abstained": false,
+      "acceptedAnswer": true,
+      "elapsedMillis": 39156,
+      "answer": "ASVS 5.0 requires session timeouts that enforce re-authentication based on risk analysis and documented security decisions. Specifically, there must be an inactivity timeout and an absolute maximum session lifetime to ensure proper session management.",
+      "citations": [
+        {
+          "id": "asvs-v7-4",
+          "sourceTitle": "OWASP ASVS 5.0 V7 Session Management",
+          "section": "V7 Session Management > V7.3 Session Timeout",
+          "sourceUrl": "https://github.com/OWASP/ASVS/blob/61a544f0fdbb7cc1578e0c3a3037a8a2874a944e/5.0/en/0x16-V7-Session-Management.md",
+          "excerpt": "Verify that there is an inactivity timeout such that re-authentication is enforced according to risk analysis and documented security decisions."
+        },
+        {
+          "id": "asvs-v7-4",
+          "sourceTitle": "OWASP ASVS 5.0 V7 Session Management",
+          "section": "V7 Session Management > V7.3 Session Timeout",
+          "sourceUrl": "https://github.com/OWASP/ASVS/blob/61a544f0fdbb7cc1578e0c3a3037a8a2874a944e/5.0/en/0x16-V7-Session-Management.md",
+          "excerpt": "Verify that there is an absolute maximum session lifetime such that re-authentication is enforced according to risk analysis and documented security decisions."
+        }
+      ]
+    },
+    {
+      "id": "asvs-09",
+      "question": "Where should backend secrets be stored according to ASVS 5.0?",
+      "expectedAnswerable": true,
+      "abstained": false,
+      "acceptedAnswer": true,
+      "elapsedMillis": 59020,
+      "answer": "According to ASVS 5.0, backend secrets should be stored using a secure secrets management solution such as a key vault. This includes ensuring that secrets are not included in application source code or build artifacts, and they must be configured to expire and be rotated based on the application's documentation.",
+      "citations": [
+        {
+          "id": "asvs-v13-4",
+          "sourceTitle": "OWASP ASVS 5.0 V13 Configuration",
+          "section": "V13 Configuration > V13.3 Secret Management",
+          "sourceUrl": "https://github.com/OWASP/ASVS/blob/61a544f0fdbb7cc1578e0c3a3037a8a2874a944e/5.0/en/0x22-V13-Configuration.md",
+          "excerpt": "Verify that a secrets management solution, such as a key vault, is used to securely create, store, control access to, and destroy backend secrets. These could include passwords, key material, integrations with databases and third-party systems, keys and seeds for time-based tokens, other internal secrets, and API keys. Secrets must not be included in application source code or included in build artifacts."
+        },
+        {
+          "id": "asvs-v13-4",
+          "sourceTitle": "OWASP ASVS 5.0 V13 Configuration",
+          "section": "V13 Configuration > V13.3 Secret Management",
+          "sourceUrl": "https://github.com/OWASP/ASVS/blob/61a544f0fdbb7cc1578e0c3a3037a8a2874a944e/5.0/en/0x22-V13-Configuration.md",
+          "excerpt": "Verify that secrets are configured to expire and be rotated based on the application's documentation."
+        }
+      ]
+    },
+    {
+      "id": "none-03",
+      "question": "Qual é a previsão do tempo amanhã em Campinas?",
+      "expectedAnswerable": false,
+      "abstained": true,
+      "acceptedAnswer": false,
+      "elapsedMillis": 861,
+      "answer": "Não encontrei informação suficiente nos documentos consultados para responder com segurança.",
+      "citations": []
+    },
+    {
+      "id": "none-01",
+      "question": "Qual é o preço atual de uma instância AWS EC2 t3.micro em São Paulo?",
+      "expectedAnswerable": false,
+      "abstained": true,
+      "acceptedAnswer": false,
+      "elapsedMillis": 1537,
+      "answer": "Não encontrei informação suficiente nos documentos consultados para responder com segurança.",
+      "citations": []
+    }
+  ],
+  "chatModelFingerprint": "qwen3:1.7b@8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7",
+  "independent": false,
+  "counts": {
+    "outside": {
+      "total": 2,
+      "answered": 0,
+      "abstained": 2
+    },
+    "answerable": {
+      "acceptedAnswers": 3,
+      "total": 6,
+      "falseRefusals": 3,
+      "answered": 3
+    }
+  }
+}

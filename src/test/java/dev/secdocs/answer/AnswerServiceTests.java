@@ -114,9 +114,38 @@ class AnswerServiceTests {
         var weakHit = new SearchHit("sql-1", "SQL Injection", "Prepared Statements",
                 "https://example.org/sql", CONTENT, 0.54, SearchMode.VECTOR);
         var model = new RecordingModel(draft("Resposta", QUOTE), draft("Resposta", QUOTE));
-        assertTrue(service(List.of(weakHit), model).answer("Pergunta").abstained());
+        var result = service(List.of(weakHit), model).answer("Pergunta");
+        assertTrue(result.abstained());
+        assertEquals(AnswerService.Outcome.INSUFFICIENT_EVIDENCE, result.outcome());
+        assertEquals(0, result.attempts());
+        assertEquals(List.of(weakHit), result.evidence());
         assertEquals(0, model.firstCalls);
         assertEquals(0, model.repairCalls);
+    }
+
+    @Test
+    void invalidSelectedIdGetsOnlyOneRepairAndFinalDiagnostics() throws Exception {
+        var invalid = new AnswerModel.ModelAnswer("Resposta", List.of(), false,
+                AnswerModel.Failure.INVALID_CITATION);
+        var model = new RecordingModel(invalid, invalid);
+        var result = service(List.of(HIT), model).answer("Pergunta");
+        assertTrue(result.abstained());
+        assertEquals(AnswerService.Outcome.INVALID_CITATION, result.outcome());
+        assertEquals(2, result.attempts());
+        assertEquals(1, model.repairCalls);
+        assertEquals(List.of(HIT), result.evidence());
+        assertEquals("server-passages-v1", result.citationStrategy());
+        assertTrue(result.durationMs() >= 0);
+    }
+
+    @Test
+    void shortEvidenceDoesNotClaimThatTheModelWasCalled() throws Exception {
+        var shortHit = new SearchHit("tiny", "Source", "Section", "url", "tiny\n\nshort", .8, SearchMode.VECTOR);
+        var model = new RecordingModel(draft("Resposta", QUOTE), draft("Resposta", QUOTE));
+        var result = service(List.of(shortHit), model).answer("Pergunta");
+        assertEquals(AnswerService.Outcome.INSUFFICIENT_EVIDENCE, result.outcome());
+        assertEquals(0, result.attempts());
+        assertEquals(0, model.firstCalls);
     }
 
     @Test

@@ -64,6 +64,25 @@ java -jar $jar --secdocs.probe-injection=true --spring.main.web-application-type
 
 O primeiro comando falha se o recall@5 vetorial ficar abaixo de 80%. O job `retrieval-eval` do CI executa ingestão, embeddings e essa avaliação em banco e Ollama limpos. A [execução do acervo atual](https://github.com/munhoz-iago/secdocs-rag/actions/runs/38010444859) passou nos dois jobs: gravou 300 trechos e repetiu 39/40, 27/40 e 38/40 nos modos vetorial, textual e híbrido. O CI não mede a taxa de recusas indevidas do gerador.
 
+## Comparação de geração em 12/10/2026
+
+As observações manuais anteriores motivaram um experimento congelado com `evals/generation-set.json`: seis perguntas legítimas e duas fora do corpus, na mesma ordem, com o mesmo digest de `qwen3:1.7b`. A versão anterior foi executada antes da mudança; a atual usa IDs de excertos e citações montadas no servidor. Os hashes da fixture e do modelo são conferidos por `python scripts/compare_generation.py --check`.
+
+| Medida | Antes | Depois |
+|---|---:|---:|
+| Respondidas com citações, entre 6 legítimas | 3 | 4 |
+| Recusas em perguntas legítimas | 3 | 2 |
+| Fora do corpus recusadas | 2/2 | 2/2 |
+| Mediana de tempo nas 6 legítimas | 76,6 s | 54,8 s |
+
+`acceptedAnswer` significa apenas resposta não vazia, não recusada e com citações. Não é uma medida de acurácia. A latência vem de uma execução local por versão, com aquecimento diferente; prompt e limite de saída também mudaram, portanto não se atribui o resultado exclusivamente ao formato de citações.
+
+No fluxo atual, `sql-01` passou após reparação; `sql-02` e `xss-01` foram recusados por `UNSUPPORTED_CODE` após duas tentativas. Top 10 e os dois casos ASVS passaram na primeira tentativa. As duas perguntas fora do corpus foram recusadas por `INSUFFICIENT_EVIDENCE` sem chamar o gerador.
+
+**Revisão do conteúdo:** uma segunda análise do Claude, identificada como assistida por modelo e não independente, encontrou atribuição incorreta de CWEs a Broken Access Control em `top10-05`, afirmações adicionais sem apoio nos excertos selecionados em `asvs-05`, e generalização de requisitos L3/HSM em `asvs-09`. A inspeção do caso Top 10 confirma que a resposta contém CWEs ausentes nas citações selecionadas e mistura categorias. O aumento de respostas aceitas não permite concluir melhora de qualidade semântica. Esses casos são mantidos nos artefatos e na demonstração para inspeção.
+
+Artefatos: [baseline](evals/generation-baseline.json), [execução atual](evals/generation-results.json), [comparação](evals/generation-comparison.json), [revisão assistida](evals/generation-review.json), [protocolo e comandos do harness](docs/GENERATION_EVALUATION.md). O protocolo independente continua pendente de perguntas externas.
+
 ## Próximos experimentos
 
 Executar a avaliação do acervo atual no CI; criar perguntas independentes segundo o [protocolo para avaliação independente](BLIND_EVAL_PROTOCOL.md), incluindo paráfrases difíceis e temas de segurança próximos mas ausentes; medir recusa e fundamentação manualmente com critérios definidos antes de ajustar o limiar; comparar tamanhos de trechos; testar várias formas de injeção e medir latência em máquinas diferentes.

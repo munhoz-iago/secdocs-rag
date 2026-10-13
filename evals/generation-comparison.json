@@ -1,0 +1,26 @@
+{
+  "data": "development",
+  "independent": false,
+  "fixtureSha256": "e9afcf89099c447533bfa5a6b54291870a32b405553a4d02177f5c3b258273af",
+  "chatModelFingerprint": "qwen3:1.7b@8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7",
+  "definition": "Answered with citations means accepted by structural/literal checks; not semantic correctness.",
+  "limitation": "One run per version on eight known cases. Prompt and token budget also changed. No generalization or isolated causal claim.",
+  "before": {
+    "citationStrategy": "literal-quotes-v1",
+    "answerable": 6,
+    "answeredWithCitations": 3,
+    "falseRefusals": 3,
+    "outside": 2,
+    "outsideAbstained": 2,
+    "medianAnswerableMillis": 76560.0
+  },
+  "after": {
+    "citationStrategy": "server-passages-v1",
+    "answerable": 6,
+    "answeredWithCitations": 4,
+    "falseRefusals": 2,
+    "outside": 2,
+    "outsideAbstained": 2,
+    "medianAnswerableMillis": 54761.0
+  }
+}

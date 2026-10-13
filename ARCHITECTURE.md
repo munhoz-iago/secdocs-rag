@@ -7,7 +7,9 @@
 3. `EmbedChunks` pede vetores de 1.024 dimensões ao `bge-m3:567m` no Ollama. O digest do modelo é salvo junto do vetor para impedir mistura acidental de versões.
 4. `SearchEngine` executa busca vetorial por cosseno com índice HNSW e busca textual com `tsvector` e stemming inglês; os termos da pergunta são combinados por OR, montados a partir dos lexemas, para que aspas e sinais de menos não virem operadores. A busca híbrida soma `1 / (60 + posição)` para até 20 candidatos de cada modalidade.
 5. `AnswerService` recupera os cinco melhores trechos vetoriais, recusa se a maior similaridade for menor que `0,55` e envia a pergunta e os trechos ao `qwen3:1.7b` local.
-6. O modelo devolve JSON com resposta, indicador de recusa e até três pares de ID/trecho. O servidor exige que todas as citações tenham ID recuperado e texto contíguo no trecho original; qualquer citação inválida causa recusa. Código entre crases ou em bloco cercado só passa se aparecer literalmente dentro de uma citação validada. Fora desses trechos, o texto é recusado se tiver sinais de código, como crases soltas, ponto e vírgula em posição de código, tags, operadores de shell ou pares de palavras-chave SQL, inclusive com separadores ofuscados. Uma resposta substantiva rejeitada por essas regras pode receber uma única tentativa de correção com os mesmos trechos; a segunda saída passa pelo mesmo validador. É uma heurística e não detecta toda sintaxe.
+6. `EvidencePassages` produz excertos literais com IDs locais à consulta, de 20 a 600 caracteres, até 30 excertos ou 14.000 caracteres. O modelo devolve JSON com resposta, indicador de recusa e até três IDs; o servidor resolve os IDs para texto original. IDs desconhecidos ou repetidos são rejeitados. Código entre crases ou em bloco cercado só passa se aparecer literalmente dentro de uma citação validada. Fora desses trechos, sinais de código continuam causando recusa. Uma falha de citação ou código admite no máximo uma reparação com a mesma evidência e o mesmo validador. A API registra resultado, tentativas, duração e evidências recuperadas. A verificação de código é heurística e não detecta toda sintaxe.
+7. `WorkspaceService` lê catálogo e relatórios empacotados para a interface de fontes e avaliação. Não consulta banco ou modelo, nem apresenta snapshots como estado vivo. JavaScript progressivo atualiza consulta, filtros e visualizações; o formulário de consulta tem fallback Thymeleaf.
+8. `scripts/export_demo.py` exporta a página renderizada, os arquivos estáticos e os resultados reais para GitHub Pages. A demonstração pública reproduz casos gravados, com identificação explícita; perguntas novas exigem a aplicação local.
 
 ## Componentes e contratos
 
@@ -17,8 +19,9 @@
 | Ingestão | `OwaspIngestion`, `MarkdownChunker`, `StoreChunks` | Criar e persistir trechos reproduzíveis |
 | Vetores | `OllamaEmbeddingClient`, `EmbedChunks` | Gerar vetores e guardar digest do modelo |
 | Recuperação | `SearchEngine`, `SearchHit` | Buscar, ordenar e fundir resultados |
-| Geração | `OllamaAnswerModel`, `AnswerService` | Responder e validar citações |
-| Avaliação | `EvaluateRetrieval`, `ProbePromptInjection` | Medir recall e executar uma prova adversarial |
+| Geração | `EvidencePassages`, `OllamaAnswerModel`, `AnswerService` | Selecionar excertos, montar citações e validar código |
+| Avaliação | `EvaluateRetrieval`, `EvaluateGeneration`, `ProbePromptInjection` | Medir recuperação, recusas/latência e executar uma prova adversarial |
+| Apresentação | `WorkspaceController`, `WorkspaceService`, HTML/CSS/JS | Consultar, explorar fontes e visualizar snapshots |
 
 ## Persistência
 
@@ -28,8 +31,9 @@
 
 - [0001: embeddings locais multilíngues](docs/decisions/0001-local-multilingual-embeddings.md)
 - [0002: recuperação medida e geração local](docs/decisions/0002-retrieval-and-generation.md)
+- [0003: citações montadas pelo servidor](docs/decisions/0003-server-owned-citations.md)
 - [Protocolo para avaliação independente](BLIND_EVAL_PROTOCOL.md)
 
 ## Fronteiras de confiança
 
-Pergunta e documentos são dados externos. Consultas SQL usam parâmetros. O conteúdo recuperado é marcado como evidência, não como instrução ao modelo. O modelo ainda pode interpretar mal esses dados; a validação de citações só comprova que a frase citada existe no trecho, não que todas as frases da resposta sejam verdadeiras. O Thymeleaf escapa resposta e trechos na página, e o controlador só transforma URLs OWASP permitidas em links.
+Pergunta e documentos são dados externos. Consultas SQL usam parâmetros. O conteúdo recuperado é marcado como evidência, não como instrução ao modelo. O modelo ainda pode interpretar mal esses dados; a citação montada pelo servidor comprova a origem do texto citado, sem validar todas as afirmações da resposta. Thymeleaf escapa conteúdo; JavaScript usa texto e elementos DOM, e links são restritos aos arquivos OWASP fixados. A demonstração pública contém somente fontes públicas e casos de desenvolvimento; não expõe o banco nem o Ollama local.

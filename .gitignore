@@ -1,5 +1,7 @@
 HELP.md
 target/
+site/
+__pycache__/
 data/processed/
 .env
 .mvn/wrapper/maven-wrapper.jar

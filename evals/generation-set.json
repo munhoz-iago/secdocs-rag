@@ -1,0 +1,64 @@
+{
+  "data": "development",
+  "strategy": "curated-known-corpus",
+  "independent": false,
+  "description": "Conjunto de desenvolvimento com conhecimento do corpus e do golden set; não é avaliação independente nem mede correção semântica.",
+  "questions": [
+    {
+      "id": "sql-01",
+      "language": "pt",
+      "question": "Como consultas parametrizadas ajudam a prevenir SQL injection?",
+      "expectedAnswerable": true,
+      "expectedChunkIds": ["sql-injection-5", "sql-injection-6"]
+    },
+    {
+      "id": "sql-02",
+      "language": "pt",
+      "question": "Mostre o princípio de um PreparedStatement seguro em Java.",
+      "expectedAnswerable": true,
+      "expectedChunkIds": ["sql-injection-6"]
+    },
+    {
+      "id": "xss-01",
+      "language": "pt",
+      "question": "Qual codificação usar ao inserir texto não confiável entre tags HTML?",
+      "expectedAnswerable": true,
+      "expectedChunkIds": ["xss-5"]
+    },
+    {
+      "id": "top10-05",
+      "language": "en",
+      "question": "Which CWEs are mentioned under broken access control in Top 10 2025?",
+      "expectedAnswerable": true,
+      "expectedChunkIds": ["top10-a01-1"]
+    },
+    {
+      "id": "asvs-05",
+      "language": "en",
+      "question": "What session timeouts does ASVS 5.0 require?",
+      "expectedAnswerable": true,
+      "expectedChunkIds": ["asvs-v7-4"]
+    },
+    {
+      "id": "asvs-09",
+      "language": "en",
+      "question": "Where should backend secrets be stored according to ASVS 5.0?",
+      "expectedAnswerable": true,
+      "expectedChunkIds": ["asvs-v13-4"]
+    },
+    {
+      "id": "none-03",
+      "language": "pt",
+      "question": "Qual é a previsão do tempo amanhã em Campinas?",
+      "expectedAnswerable": false,
+      "expectedChunkIds": []
+    },
+    {
+      "id": "none-01",
+      "language": "pt",
+      "question": "Qual é o preço atual de uma instância AWS EC2 t3.micro em São Paulo?",
+      "expectedAnswerable": false,
+      "expectedChunkIds": []
+    }
+  ]
+}

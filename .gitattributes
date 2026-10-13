@@ -1,2 +1,4 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+# The published evaluations hash the exact fixture bytes on Windows and Linux.
+evals/generation-set.json text eol=lf

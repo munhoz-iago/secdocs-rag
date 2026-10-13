@@ -2,9 +2,21 @@
 
 [![Java and retrieval evaluation](https://github.com/munhoz-iago/secdocs-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/munhoz-iago/secdocs-rag/actions/workflows/ci.yml)
 
-Assistente local em **Java 21** para consultar, com citações, 30 arquivos Markdown públicos da OWASP: três Cheat Sheets, as dez categorias do Top 10:2025 e 17 capítulos do ASVS 5.0. Ele ingere Markdown, divide por seção, armazena vetores no PostgreSQL com pgvector, compara busca vetorial, textual e híbrida, e gera respostas com o Ollama. Uma pergunta sem evidência suficiente recebe uma recusa. A página é renderizada pelo Spring com Thymeleaf, sem JavaScript.
+Um espaço de consulta a documentação de segurança: faça uma pergunta, examine as evidências originais e compare os resultados de busca. Construído em **Java 21, Spring Boot, PostgreSQL com pgvector e Ollama local**, com 30 arquivos OWASP em revisões fixas: três Cheat Sheets, dez categorias do Top 10:2025 e 17 capítulos do ASVS 5.0.
 
-![Pergunta, resposta e citação verificável na demonstração local](docs/assets/demo-answer.png)
+**[Explorar demonstração pública](https://munhoz-iago.github.io/secdocs-rag/)** · [Arquitetura](ARCHITECTURE.md) · [Avaliação de respostas](docs/GENERATION_EVALUATION.md) · [Limitações](LIMITATIONS.md)
+
+A demonstração pública reproduz respostas reais gravadas em um conjunto de desenvolvimento. Novas perguntas são processadas na aplicação local; o banco e os modelos não são expostos na internet.
+
+![Interface de consulta com evidências OWASP](docs/assets/workspace-overview.jpg)
+
+## O que explorar
+
+- **Consultar:** resposta com citações copiadas pelo servidor, motivo de recusa, duração, tentativas e trechos recuperados. A opção de buscar apenas evidências dispensa a geração.
+- **Fontes OWASP:** catálogo pesquisável por título e família, com versão fixada, atribuição e link para o arquivo original.
+- **Avaliação:** comparação visual das três buscas, resultados por pergunta e execução de geração. Os números exibidos vêm de snapshots publicados, identificados como desenvolvimento.
+
+A interface usa Thymeleaf e JavaScript progressivo, com carregamento, cancelamento de espera, estados de erro e adaptação a telas pequenas. A consulta por formulário continua disponível sem JavaScript na aplicação local.
 
 ## Demonstração local
 
@@ -36,7 +48,7 @@ Abra [http://localhost:8080](http://localhost:8080). Os comandos de preparo pode
 
 ## API
 
-`POST /api/ask` recebe `{"question":"Como consultas parametrizadas previnem SQL injection?"}` e devolve `answer`, `abstained` e citações com trecho literal, seção e URL. `POST /api/search` recebe `question`, `mode` (`VECTOR`, `KEYWORD` ou `HYBRID`) e `limit` (1–10). `GET /api/status` verifica a aplicação. As perguntas têm até 500 caracteres; as rotas POST da API e do formulário têm limite local de 20 pedidos por minuto por endereço IP.
+`POST /api/ask` recebe `{"question":"Como consultas parametrizadas previnem SQL injection?"}` e devolve `answer`, `abstained`, citações literais, `outcome`, `attempts`, `durationMs`, `evidence` e `citationStrategy`. `POST /api/search` recebe `question`, `mode` (`VECTOR`, `KEYWORD` ou `HYBRID`) e `limit` (1–10). `GET /api/workspace` entrega catálogo e snapshots publicados sem depender de banco ou modelo; `GET /api/status` verifica a aplicação. As perguntas têm até 500 caracteres; as rotas POST da API e do formulário têm limite local de 20 pedidos por minuto por endereço IP.
 
 ```powershell
 $body = @{question='Como consultas parametrizadas previnem SQL injection?'} | ConvertTo-Json
@@ -47,9 +59,22 @@ Invoke-RestMethod http://localhost:8080/api/ask -Method Post -ContentType 'appli
 
 - **Ingestão:** antes de gravar, o programa exige as 30 fontes do catálogo, confere revisão e URL, e rejeita IDs duplicados. A reimportação remove trechos antigos e fontes retiradas do catálogo; conteúdo alterado invalida o embedding correspondente.
 - **Busca e avaliação:** a busca textual combina palavras por OR sem deixar aspas ou `-termo` virarem operadores. O golden set passou a incluir Top 10 e ASVS; as 15 traduções são avaliadas como pares PT/EN, e a avaliação falha se um ID esperado não existir no banco.
-- **Respostas e citações:** todas as citações precisam ser trechos literais de fontes recuperadas. Código exibido só é aceito quando aparece integralmente numa citação validada. Um rascunho rejeitado por citação ou código pode receber uma única tentativa de correção, submetida às mesmas regras. A interface só aceita links Markdown nos três repositórios OWASP, sem caminhos relativos ou hosts alternativos.
+- **Respostas e citações:** o modelo seleciona IDs de excertos fornecidos e o servidor monta as citações a partir do texto original. IDs desconhecidos ou repetidos são rejeitados. Código só é aceito quando aparece integralmente na citação selecionada; uma falha de validação pode receber uma única correção. Isso verifica origem e literalidade, sem garantir correspondência semântica entre resposta e fonte. [Decisão e limites](docs/decisions/0003-server-owned-citations.md).
+- **Experiência e transparência:** navegação entre consulta, fontes e avaliação, filtros, visualizações baseadas em relatórios reais e demonstração pública gravada. Conteúdo externo é exibido como texto; links se restringem aos arquivos OWASP fixados.
 
-**Limite ainda aberto:** a geração com `qwen3:1.7b` pode recusar perguntas legítimas mesmo com os trechos corretos recuperados. O prompt reforçado e a segunda tentativa não resolveram uma pergunta sobre SQL injection no teste local; veja [EVALS.md](EVALS.md) e [LIMITATIONS.md](LIMITATIONS.md). O protocolo de avaliação independente foi preparado, mas as perguntas externas ainda não foram coletadas.
+**Limite ainda aberto:** `qwen3:1.7b` continua recusando perguntas legítimas e pode fazer afirmações que não decorrem das citações. Na comparação atual, 4/6 perguntas legítimas receberam resposta com citações, contra 3/6 antes. Isso **não significa 4 respostas corretas**: a revisão assistida identificou uma mistura de categorias no Top 10 e ressalvas de escopo no ASVS. Veja os [resultados e a revisão](EVALS.md). O conjunto independente ainda não foi coletado.
+
+### Geração: comparação controlada de desenvolvimento
+
+Mesmo conjunto congelado de oito perguntas, mesmo digest de `qwen3:1.7b`, mesmo corpus e ordem. Uma execução por versão em CPU:
+
+| Medida | Citação copiada pelo modelo | Citação montada pelo servidor |
+|---|---:|---:|
+| Perguntas legítimas respondidas com citações | 3/6 | 4/6 |
+| Recusas em perguntas legítimas | 3/6 | 2/6 |
+| Perguntas fora do acervo recusadas | 2/2 | 2/2 |
+
+A mudança melhora a disponibilidade nesse conjunto, sem demonstrar melhora geral de fidelidade. Prompt e orçamento de saída também mudaram. [Comparação verificável](evals/generation-comparison.json), [respostas completas](evals/generation-results.json) e [revisão assistida por Claude, não independente](evals/generation-review.json). Há **149 testes Java** passando localmente; a avaliação de geração é opt-in e não roda por padrão no CI.
 
 ## Resultados medidos
 
@@ -84,12 +109,13 @@ flowchart LR
   C --> D[Busca vetorial e textual]
   D --> E[Comparação RRF]
   D --> F[Cinco trechos vetoriais]
-  F --> G[Qwen3 local no Ollama]
-  G --> H[Validação de citações literais]
+  F --> P[Excertos literais com IDs da consulta]
+  P --> G[Qwen3 local seleciona IDs]
+  G --> H[Servidor monta citações e valida código]
   H --> I[Resposta ou recusa]
 ```
 
-O código principal fica em `src/main/java/dev/secdocs`: `ingest` baixa e divide; `embed` gera vetores; `search` recupera; `answer` consulta o modelo e valida as citações; `eval` mede recuperação e faz uma prova de injeção de prompt. [ARCHITECTURE.md](ARCHITECTURE.md) detalha o fluxo e [LIMITATIONS.md](LIMITATIONS.md) descreve os riscos.
+O código principal fica em `src/main/java/dev/secdocs`: `ingest` baixa e divide; `embed` gera vetores; `search` recupera; `answer` consulta o modelo e valida as citações; `eval` mede recuperação e geração e executa uma prova de injeção de prompt; `workspace` expõe catálogo e relatórios à interface. [ARCHITECTURE.md](ARCHITECTURE.md) detalha o fluxo e [LIMITATIONS.md](LIMITATIONS.md) descreve os riscos.
 
 ## Fontes e licença
 
@@ -107,7 +133,21 @@ A lista completa, com repositório, caminho, revisão e licença de cada arquivo
 
 - [Embeddings locais multilíngues](docs/decisions/0001-local-multilingual-embeddings.md)
 - [Recuperação e geração](docs/decisions/0002-retrieval-and-generation.md)
+- [Citações montadas pelo servidor](docs/decisions/0003-server-owned-citations.md)
+- [Avaliação reproduzível de geração](docs/GENERATION_EVALUATION.md)
 - [Avaliações reproduzíveis](EVALS.md)
 - [Protocolo para avaliação independente](BLIND_EVAL_PROTOCOL.md)
 - [Guia geral para estudar o projeto](GUIA_GERAL_SECDOCS_RAG.md)
 - [Plano de estudos por sessões](PLANO_DE_ESTUDOS.md)
+
+## Reproduzir a demonstração pública
+
+Com a aplicação local aberta e os snapshots já publicados:
+
+```powershell
+python scripts/compare_generation.py --check
+python scripts/export_demo.py
+python -m http.server 8082 --directory site --bind 127.0.0.1
+```
+
+Abra `http://localhost:8082`. O exportador usa somente a página renderizada, os arquivos estáticos, o catálogo e os resultados registrados. O workflow `pages.yml` repete essa exportação e publica no GitHub Pages, sem banco, inferência, chaves ou histórico de usuários. Consulte o [estudo de caso](docs/CASE_STUDY.md) para uma leitura guiada do projeto.

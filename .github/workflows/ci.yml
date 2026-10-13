@@ -16,6 +16,8 @@ jobs:
           java-version: '21'
           cache: maven
       - run: chmod +x mvnw && ./mvnw -B verify
+      - name: Check published generation comparison
+        run: python3 scripts/compare_generation.py --check
 
   retrieval-eval:
     runs-on: ubuntu-latest

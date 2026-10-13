@@ -3,64 +3,159 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SecDocs RAG · OWASP em contexto</title>
-  <style>
-    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #0b1220; color: #e8f1fb; }
-    * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 10% 0%, #193b48 0, transparent 35%), #0b1220; }
-    main { max-width: 900px; margin: auto; padding: 48px 24px 80px; }
-    header { margin-bottom: 44px; }
-    .eyebrow { color: #6de0ca; letter-spacing: .13em; text-transform: uppercase; font-size: 12px; font-weight: 800; }
-    h1 { font-size: clamp(36px, 6vw, 64px); line-height: 1.03; letter-spacing: -.05em; margin: 12px 0 18px; }
-    .lead { max-width: 630px; color: #b5c8d8; line-height: 1.6; font-size: 18px; }
-    .panel { background: #132235; border: 1px solid #365165; border-radius: 18px; padding: 24px; box-shadow: 0 20px 50px #0004; }
-    label { display: block; font-weight: 700; margin-bottom: 10px; }
-    textarea { width: 100%; resize: vertical; min-height: 100px; border-radius: 10px; border: 1px solid #68849a; background: #091625; color: #f2fbff; font: inherit; padding: 14px; }
-    textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #6de0ca; outline-offset: 3px; }
-    .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
-    button { background: #6de0ca; color: #072024; border: 0; border-radius: 9px; padding: 12px 18px; font: inherit; font-weight: 800; cursor: pointer; }
-    button:disabled { opacity: .6; cursor: wait; }
-    .hint, .meta { color: #a7bbcd; font-size: 14px; }
-    .examples { margin: 28px 0; }
-    .examples form { display: inline; }
-    .examples button { background: transparent; color: #d9eef6; border: 1px solid #547387; font-weight: 500; margin: 0 8px 8px 0; }
-    #result { margin-top: 28px; }
-    #answer { font-size: 20px; line-height: 1.55; white-space: pre-wrap; }
-    .citation { border-top: 1px solid #365165; padding-top: 16px; margin-top: 16px; }
-    .citation a { color: #6de0ca; font-weight: 700; }
-    blockquote { margin: 8px 0 0; border-left: 3px solid #6de0ca; padding-left: 14px; color: #c3d4df; line-height: 1.5; }
-    footer { margin-top: 36px; color: #9eb3c5; font-size: 14px; line-height: 1.5; }
-  </style>
+  <meta name="secdocs-mode" content="live">
+  <meta name="theme-color" content="#f3f6fa">
+  <meta name="description" content="Consulte documentação OWASP em português, examine os trechos originais e compare métodos de recuperação de evidências.">
+  <title>SecDocs RAG — OWASP em contexto</title>
+  <link rel="icon" href="./secdocs.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./app.css">
+  <script src="./app.js" defer></script>
 </head>
 <body>
-  <main>
-    <header>
-      <div class="eyebrow">Java · PostgreSQL + pgvector · Ollama local</div>
-      <h1>SecDocs RAG</h1>
-      <p class="lead">Pergunte sobre os Cheat Sheets de SQL injection, XSS e autenticação, o Top 10:2025 ou o ASVS 5.0. Cada resposta traz trechos verificáveis dos documentos da OWASP. Quando a evidência é insuficiente, o assistente se abstém.</p>
-    </header>
-    <form class="panel" action="/consultar" method="post">
-      <label for="question">Sua pergunta</label>
-      <textarea id="question" name="question" maxlength="500" required placeholder="Como consultas parametrizadas previnem SQL injection?" th:text="${question}"></textarea>
-      <div class="actions"><button type="submit">Consultar documentos</button><span class="hint">A geração local pode levar cerca de um minuto em CPU.</span></div>
-      <p class="hint" th:if="${error}" th:text="${error}" role="alert"></p>
-    </form>
-    <div class="examples" aria-label="Exemplos de perguntas">
-      <span class="meta">Experimente:</span><br>
-      <form action="/consultar" method="post"><button type="submit" name="question" value="Como consultas parametrizadas ajudam a prevenir SQL injection?">Consultas parametrizadas</button></form>
-      <form action="/consultar" method="post"><button type="submit" name="question" value="Quando devo sanitizar HTML de usuários para evitar XSS?">Sanitização de HTML</button></form>
-      <form action="/consultar" method="post"><button type="submit" name="question" value="Qual é a previsão do tempo amanhã?">Pergunta fora do acervo</button></form>
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#consultar" aria-label="SecDocs RAG, início">
+        <img src="./secdocs.svg" width="34" height="38" alt="">
+        <span>SecDocs <span class="brand-suffix">RAG</span></span>
+      </a>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <a href="#consultar" data-view="consultar" aria-current="page">Consultar</a>
+        <a href="#fontes" data-view="fontes">Fontes OWASP</a>
+        <a href="#avaliacao" data-view="avaliacao">Avaliação</a>
+      </nav>
+      <a class="repository-link" href="https://github.com/munhoz-iago/secdocs-rag" target="_blank" rel="noopener noreferrer">Ver projeto <span aria-hidden="true">↗</span><span class="sr-only"> (abre em nova aba)</span></a>
     </div>
-    <section id="result" class="panel" aria-live="polite" th:if="${result != null}">
-      <div class="eyebrow">Resposta</div>
-      <p id="answer" th:text="${result.answer}"></p>
-      <div th:each="citation : ${citations}" class="citation">
-        <a th:if="${citation.url != null}" th:href="${citation.url}" target="_blank" rel="noopener noreferrer" th:text="${citation.title + ' · ' + citation.section}"></a>
-        <p th:if="${citation.url == null}" th:text="${citation.title + ' · ' + citation.section}"></p>
-        <blockquote th:text="${citation.excerpt}"></blockquote>
+  </header>
+
+  <div id="demo-banner" class="demo-banner" hidden>
+    <div class="page-width"><strong>Demonstração gravada</strong><span>Respostas reais da avaliação de desenvolvimento. Nenhuma geração acontece aqui.</span></div>
+  </div>
+
+  <main id="main" class="page-width" tabindex="-1">
+    <section id="consultar" class="view" aria-labelledby="consultar-title">
+      <div class="view-intro consult-intro">
+        <div>
+          <p class="context-label"><span class="context-line" aria-hidden="true"></span>Documentação para decisões de AppSec</p>
+          <h1 id="consultar-title" tabindex="-1">Da dúvida à<br>documentação.</h1>
+          <p class="intro-copy">Pergunte em português. Explore as referências da OWASP e confira os trechos originais que sustentam a resposta.</p>
+        </div>
+        <div class="intro-note">
+          <span class="note-symbol" aria-hidden="true">[ ]</span>
+          <p>Uma resposta é um ponto de partida.<br><strong>A fonte permite ir além.</strong></p>
+          <a href="#fontes" class="text-link">Explorar o acervo</a>
+        </div>
       </div>
+
+      <div class="consult-layout">
+        <div class="query-workspace">
+          <form id="ask-form" class="question-form" action="/consultar" method="post">
+            <div class="field-heading"><label for="question">O que você quer investigar?</label><span id="question-count" class="field-count" aria-hidden="true">0 / 500</span></div>
+            <textarea id="question" name="question" maxlength="500" required rows="4" placeholder="Como consultas parametrizadas ajudam a prevenir SQL injection?" aria-describedby="question-help" th:text="${question}"></textarea>
+            <p id="question-help" class="field-help">Até 500 caracteres. Uma pergunta específica ajuda a encontrar trechos relevantes.</p>
+            <div id="recorded-picker" class="recorded-picker" hidden>
+              <label for="recorded-case">Escolha um caso gravado</label>
+              <select id="recorded-case"><option value="">Carregando casos…</option></select>
+              <p id="recorded-status" class="field-help" role="status"></p>
+              <button id="retry-recordings" class="button button-quiet" type="button" hidden>Recarregar casos</button>
+            </div>
+            <div class="form-actions">
+              <button id="ask-button" class="button button-primary" type="submit"><span id="ask-button-label">Consultar documentos</span><span aria-hidden="true">↗</span></button>
+              <button id="evidence-button" class="button button-secondary" type="button" data-js-only hidden>Só buscar evidências</button>
+              <button id="cancel-ask" class="button button-quiet" type="button" hidden>Cancelar espera</button>
+            </div>
+            <div id="ask-progress" class="request-progress" hidden>
+              <span class="progress-indicator" aria-hidden="true"></span>
+              <div><p id="ask-status" role="status">Consultando documentos e preparando a resposta…</p><p class="field-help">Você pode explorar as outras páginas enquanto aguarda. <span id="ask-elapsed" aria-hidden="true"></span></p></div>
+            </div>
+            <p class="form-error" th:if="${error}" th:text="${error}" role="alert"></p>
+            <div id="ask-error" class="notice notice-error" role="alert" hidden><p id="ask-error-message"></p><button id="retry-ask" class="button button-quiet" type="button">Tentar novamente</button></div>
+          </form>
+          <div class="examples" data-js-only hidden>
+            <p id="examples-label">Uma pergunta para começar</p>
+            <div id="example-buttons" class="example-buttons">
+              <button type="button" data-question="Como consultas parametrizadas ajudam a prevenir SQL injection?">Consultas parametrizadas</button>
+              <button type="button" data-question="Quando devo sanitizar HTML de usuários para evitar XSS?">Sanitização de HTML</button>
+              <button type="button" data-question="Qual é a previsão do tempo amanhã?">Fora do acervo</button>
+            </div>
+          </div>
+        </div>
+        <aside class="reading-guide" aria-labelledby="reading-guide-title">
+          <h2 id="reading-guide-title">Da pergunta à evidência</h2>
+          <ol class="process-list">
+            <li><span class="process-dot" aria-hidden="true"></span><div><strong>Encontre o contexto</strong><p>Trechos recuperados da documentação OWASP.</p></div></li>
+            <li><span class="process-dot" aria-hidden="true"></span><div><strong>Leia a resposta</strong><p>Em português, com referências para conferir.</p></div></li>
+            <li><span class="process-dot" aria-hidden="true"></span><div><strong>Volte ao original</strong><p>Excertos em inglês e links para a revisão do documento.</p></div></li>
+          </ol>
+          <p class="guide-footnote">Se a evidência não sustentar uma resposta, a consulta pode terminar em recusa.</p>
+        </aside>
+      </div>
+
+      <section id="answer-result" class="answer-result" aria-labelledby="answer-title" hidden th:attr="hidden=${result == null ? 'hidden' : null}">
+        <div class="section-heading"><div><p id="answer-state" class="result-state" th:text="${result != null and result.abstained ? 'Consulta encerrada sem resposta' : 'Consulta concluída'}">Consulta concluída</p><h2 id="answer-title" tabindex="-1" th:text="${result != null and result.abstained ? 'Evidência insuficiente' : 'Síntese experimental'}">Síntese experimental</h2></div><button id="copy-answer" class="button button-secondary" type="button" data-js-only hidden>Copiar resposta</button></div>
+        <p id="asked-question" class="asked-question" hidden></p>
+        <aside id="semantic-review" class="semantic-review" role="alert" hidden>
+          <strong id="semantic-review-title"></strong>
+          <p id="semantic-review-context" class="field-help"></p>
+          <details id="semantic-review-details"><summary>Ler a justificativa da revisão</summary><p id="semantic-review-reason"></p></details>
+        </aside>
+        <div id="answer-content" class="answer-text"><p th:if="${result != null}" th:text="${result.answer}"></p></div>
+        <p id="answer-explanation" class="field-help" hidden></p>
+        <p id="answer-metadata" class="answer-metadata" hidden></p>
+        <p class="semantic-note">Referências permitem conferir a origem. Elas não garantem que a interpretação esteja correta nem demonstram conformidade.</p>
+        <div id="citations-section" class="citations-section" th:if="${result == null or !result.abstained}">
+          <h3>Referências da resposta <span class="heading-note">Originais em inglês</span></h3>
+          <div id="citations-list" class="citations-list">
+            <article th:each="citation : ${citations}" class="citation">
+              <a th:if="${citation.url != null}" th:href="${citation.url}" target="_blank" rel="noopener noreferrer" th:text="${citation.title}" lang="en"></a>
+              <strong th:if="${citation.url == null}" th:text="${citation.title}" lang="en"></strong>
+              <p class="citation-section" th:text="${citation.section}" lang="en"></p>
+              <blockquote th:text="${citation.excerpt}" lang="en"></blockquote>
+            </article>
+          </div>
+        </div>
+        <details id="retrieved-evidence" class="evidence-disclosure" data-js-only hidden>
+          <summary><span>Evidências recuperadas</span><span id="evidence-count" class="summary-note"></span></summary>
+          <p class="field-help">Estes trechos foram recuperados na consulta. A presença na lista não significa que sustentem uma resposta.</p>
+          <div id="evidence-list"><p class="field-help">Os trechos recuperados não foram informados nesta página. Faça uma nova consulta para carregar as evidências disponíveis.</p></div>
+        </details>
+      </section>
+      <noscript><p class="notice">A consulta funciona pelo formulário. Ative JavaScript para carregar o catálogo, a avaliação e a comparação de evidências.</p></noscript>
     </section>
-    <footer>Fontes: OWASP Cheat Sheet Series, OWASP Top 10:2025 e OWASP ASVS 5.0, sob licença CC BY-SA 4.0. Projeto educacional; confira sempre o documento original antes de aplicar uma recomendação de segurança.</footer>
+
+    <section id="fontes" class="view" aria-labelledby="fontes-title">
+      <div class="view-intro compact-intro"><p class="context-label"><span class="context-line" aria-hidden="true"></span>O acervo por trás da consulta</p><h1 id="fontes-title" tabindex="-1">Fontes OWASP</h1><p class="intro-copy">Práticas, riscos e requisitos. Explore os documentos do acervo e abra a revisão exata de cada fonte.</p></div>
+      <div class="source-toolbar">
+        <div class="source-search"><label for="source-query">Buscar no acervo</label><input id="source-query" type="search" placeholder="Título, tema ou identificador" autocomplete="off" aria-controls="sources-list"></div>
+        <fieldset class="family-filter"><legend>Família de documentos</legend><div class="filter-options"><button type="button" data-family="all" aria-pressed="true">Todas</button><button type="button" data-family="CheatSheetSeries" aria-pressed="false">Cheat Sheets</button><button type="button" data-family="Top10" aria-pressed="false">Top 10</button><button type="button" data-family="ASVS" aria-pressed="false">ASVS</button></div></fieldset>
+      </div>
+      <div class="list-heading"><h2>Documentos do acervo</h2><span id="sources-count" class="field-help" role="status">Catálogo ainda não carregado</span></div>
+      <div id="sources-status" class="empty-state"><h3>Catálogo de fontes</h3><p>As fontes serão carregadas quando a aplicação estiver disponível.</p></div>
+      <div id="sources-list" class="sources-list"></div>
+      <button class="button button-secondary workspace-retry" type="button" data-js-only hidden>Recarregar dados</button>
+      <p class="source-footnote">Títulos preservados no idioma original. Cada link aponta para um arquivo Markdown da OWASP em uma revisão fixa no GitHub. As licenças são apresentadas por documento.</p>
+    </section>
+
+    <section id="avaliacao" class="view" aria-labelledby="avaliacao-title">
+      <div class="view-intro compact-intro"><p class="context-label"><span class="context-line" aria-hidden="true"></span>Métodos sob observação</p><h1 id="avaliacao-title" tabindex="-1">O que a busca encontra?</h1><p class="intro-copy">Compare recuperação vetorial, por palavras-chave e híbrida. Examine os resultados e os limites da avaliação.</p></div>
+      <div class="evaluation-notice"><strong>Avaliação de desenvolvimento</strong><p>Este é um retrato de uma execução registrada, não uma medição ao vivo do banco. Recuperar um trecho esperado não mede a qualidade nem a correção semântica da resposta.</p></div>
+      <section class="evaluation-summary" aria-labelledby="metrics-title">
+        <div class="section-heading"><div><h2 id="metrics-title">Recuperação nos 5 primeiros resultados</h2><p class="field-help">Recall@5: proporção de perguntas respondíveis com pelo menos um trecho esperado entre os cinco primeiros.</p></div></div>
+        <div id="evaluation-status" class="empty-state"><h3>Relatório ainda não carregado</h3><p>As métricas aparecerão quando houver um relatório disponível.</p></div>
+        <div id="evaluation-data" hidden><dl id="evaluation-facts" class="evaluation-facts"></dl><div id="metrics-bars" class="metrics-bars"></div><p id="evaluation-provenance" class="field-help provenance"></p></div>
+        <button class="button button-secondary workspace-retry" type="button" data-js-only hidden>Recarregar dados</button>
+      </section>
+      <section class="generation-section" aria-labelledby="generation-title"><h2 id="generation-title">Avaliação das respostas</h2><p id="generation-status" class="field-help">Nenhum relatório de geração carregado. As barras acima avaliam somente a recuperação de documentos.</p><div id="generation-comparison" class="generation-comparison" hidden></div><div class="generation-review-note"><strong>Verificação literal não comprova apoio semântico.</strong><p>A contagem registra respostas com citações que passaram pelas verificações de formato e referência; não mede acurácia. A revisão assistida por modelo encontrou afirmações sem apoio. O parecer não é independente. <a href="https://github.com/munhoz-iago/secdocs-rag/blob/main/evals/generation-review.json" target="_blank" rel="noopener noreferrer">Ver relatório<span class="sr-only"> (abre em nova aba)</span></a></p></div></section>
+      <section class="evaluation-cases" aria-labelledby="cases-title"><div class="section-heading"><h2 id="cases-title">Por dentro dos casos</h2><span id="cases-count" class="field-help"></span></div><details id="all-evaluation-cases" class="all-cases"><summary>Explorar perguntas e resultados</summary><p class="field-help">Abra uma pergunta para ver os identificadores recuperados por método. “Trecho esperado encontrado” se refere apenas à recuperação.</p><div id="cases-list" class="cases-list"><p class="field-help">Nenhum caso carregado.</p></div></details></section>
+      <section id="search-comparison" class="search-comparison" aria-labelledby="search-title" data-js-only hidden>
+        <div class="section-heading"><div><h2 id="search-title">Compare uma busca</h2><p class="field-help">Veja os cinco primeiros trechos de cada método, sem gerar uma resposta.</p></div></div>
+        <form id="search-form" class="search-form"><label for="search-question">Pergunta para comparar</label><div class="search-input-row"><input id="search-question" name="question" type="text" maxlength="500" required placeholder="Como proteger uma sessão de usuário?"><button id="search-button" class="button button-primary" type="submit">Comparar métodos</button></div></form>
+        <p id="search-status" class="field-help" role="status"></p><div id="search-results" class="search-results"></div>
+        <p class="source-footnote">A similaridade vetorial e as pontuações de ranking pertencem a cada método; não representam confiança na resposta e não devem ser comparadas entre colunas.</p>
+      </section>
+    </section>
   </main>
+  <footer class="site-footer"><div class="page-width footer-inner"><div><a class="footer-brand" href="#consultar">SecDocs RAG</a><p>Documentação aberta. Evidências à vista.</p></div><p class="footer-description">Projeto educacional de AppSec com fontes OWASP.<br>Confira o documento original antes de aplicar uma recomendação.</p><a href="https://github.com/munhoz-iago/secdocs-rag" target="_blank" rel="noopener noreferrer">Código no GitHub <span aria-hidden="true">↗</span><span class="sr-only"> (abre em nova aba)</span></a></div></footer>
+  <p id="app-announcement" class="sr-only" role="status" aria-live="polite"></p>
 </body>
 </html>
